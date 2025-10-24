@@ -1,0 +1,70 @@
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 100;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.form-group input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.3s ease;
+  background-color: #1C1C1E;
+  color: #ffffff;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #42FF1C;
+}
+
+.form-group input:disabled {
+  background-color: #1C1C1E;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 500;
+  margin: -10px 0 0 0;
+}
+
+.btn-submit-login {
+  color: #ffffff;
+  background-color: #42FF1C;
+  border: none;
+  font-family: 'Bayon', cursive;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 40px;
+  padding: 0px 52px;
+  margin-top: 50px;
+  transition: transform 0.3s ease, text-shadow 0.3s ease;
+}
+
+.btn-submit-login:hover:not(:disabled) {
+  text-shadow: 0 0 10px rgba(66, 255, 28, 0.5);
+  transform: scale(1.1);
+}
+
+.btn-submit-login:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

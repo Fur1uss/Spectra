@@ -1,0 +1,264 @@
+.registration-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+  max-width: 600px;
+}
+
+/* Indicador de Pasos */
+.stepper-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.step span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #2a2a2a;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 18px;
+  border: 2px solid #555;
+  transition: all 0.3s ease;
+}
+
+.step.active span {
+  background-color: #42FF1C;
+  color: #1C1C1E;
+  border-color: #42FF1C;
+  box-shadow: 0 0 10px rgba(66, 255, 28, 0.5);
+}
+
+.step.completed span {
+  background-color: #42FF1C;
+  color: #1C1C1E;
+  border-color: #42FF1C;
+}
+
+.step p {
+  color: #ffffff;
+  font-size: 12px;
+  margin: 0;
+  text-align: center;
+  opacity: 60%;
+  transition: opacity 0.3s ease;
+}
+
+.step.active p,
+.step.completed p {
+  opacity: 100%;
+}
+
+.connector {
+  width: 40px;
+  height: 2px;
+  background-color: #555;
+  transition: background-color 0.3s ease;
+}
+
+.connector.active {
+  background-color: #42FF1C;
+  box-shadow: 0 0 10px rgba(66, 255, 28, 0.5);
+}
+
+/* Formulario */
+.stepper-form {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+}
+
+.step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.step-content h2 {
+  color: #42FF1C;
+  font-size: 24px;
+  margin: 0;
+  text-align: center;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  font-weight: 100;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.form-group input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.3s ease;
+  background-color: #1C1C1E;
+  color: #ffffff;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #42FF1C;
+}
+
+.form-group input:disabled {
+  background-color: #1C1C1E;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Botones */
+.button-group {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.btn-back,
+.btn-next,
+.btn-submit {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Bayon', cursive;
+}
+
+.btn-back {
+  background-color: #555;
+  color: #ffffff;
+  flex: 1;
+}
+
+.btn-back:hover:not(:disabled) {
+  background-color: #666;
+}
+
+.btn-next {
+  background-color: #42FF1C;
+  color: #1C1C1E;
+  flex: 1;
+  font-size: 18px;
+}
+
+.btn-next:hover:not(:disabled) {
+  text-shadow: 0 0 10px rgba(66, 255, 28, 0.5);
+  transform: scale(1.05);
+}
+
+.btn-submit {
+  background-color: #42FF1C;
+  color: #1C1C1E;
+  width: 100%;
+  font-size: 40px;
+  padding: 15px;
+  margin-top: 20px;
+}
+
+.btn-submit:hover:not(:disabled) {
+  text-shadow: 0 0 10px rgba(66, 255, 28, 0.5);
+  transform: scale(1.1);
+}
+
+.btn-back:disabled,
+.btn-next:disabled,
+.btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .registration-stepper {
+    gap: 30px;
+  }
+
+  .stepper-indicator {
+    gap: 10px;
+  }
+
+  .step span {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+  }
+
+  .step p {
+    font-size: 10px;
+  }
+
+  .connector {
+    width: 20px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .btn-back,
+  .btn-next {
+    width: 100%;
+  }
+}
