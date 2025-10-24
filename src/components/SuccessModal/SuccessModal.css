@@ -1,0 +1,118 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: linear-gradient(135deg, #1c1c1e 0%, #2a2a2e 100%);
+  border: 2px solid #42ff1c;
+  border-radius: 16px;
+  padding: 48px 40px;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(66, 255, 28, 0.2);
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+  animation: bounce 0.6s ease-out;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.modal-content h2 {
+  font-family: 'Bayon', sans-serif;
+  font-size: 28px;
+  color: #42ff1c;
+  margin: 0 0 12px 0;
+  text-shadow: 0 0 10px rgba(66, 255, 28, 0.3);
+}
+
+.modal-content p {
+  color: #c0c0c0;
+  font-size: 14px;
+  margin: 0 0 30px 0;
+  line-height: 1.5;
+}
+
+.btn-view-case {
+  background: linear-gradient(135deg, #42ff1c 0%, #35cc17 100%);
+  color: #000;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-family: 'Bayon', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(66, 255, 28, 0.3);
+}
+
+.btn-view-case:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(66, 255, 28, 0.5);
+}
+
+.btn-view-case:active {
+  transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-content {
+    padding: 40px 30px;
+    max-width: 90%;
+  }
+
+  .modal-content h2 {
+    font-size: 24px;
+  }
+
+  .modal-icon {
+    font-size: 40px;
+  }
+
+  .btn-view-case {
+    padding: 12px 28px;
+    font-size: 14px;
+  }
+}

@@ -9,11 +9,11 @@ import LoginPage from './pages/Login/LoginPage.jsx'
 import RegistrationPage from './pages/Main/RegistrationPage.jsx'
 import Main from './pages/Main/Main.jsx'
 import ProfilePage from './pages/Profile/ProfilePage.jsx'
+import UploadStepper from './components/UploadStepper/UploadStepper.jsx'
+import ViewCase from './pages/ViewCase/ViewCase.jsx'
 
 // Componentes temporales para páginas sin implementar
 const Hub = () => <h1>Hub</h1>
-const Upload = () => <h1>Subir Caso</h1>
-const ViewCase = () => <h1>Ver Caso</h1>
 const ExtraCase = () => <h1>Caso Extra</h1>
 
 function App() {
@@ -31,9 +31,9 @@ function App() {
         <Route path="/registration" element={<RegistrationPage />} />
         <Route path="/main" element={<Main />} />
         <Route path="/hub" element={<Hub />} />
-        <Route path="/upload" element={<Upload />} />
+        <Route path="/upload" element={<UploadStepper />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/view-case" element={<ViewCase />} />
+        <Route path="/case/:caseId" element={<ViewCase />} />
         <Route path="/extra-case" element={<ExtraCase />} />
       </Routes>
     </>

@@ -1,0 +1,269 @@
+.view-case-page {
+  min-height: 100vh;
+  background: #0f0f11;
+  padding: 80px 20px 40px;
+}
+
+.case-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.btn-back {
+  background: transparent;
+  border: 1px solid #42ff1c;
+  color: #42ff1c;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 24px;
+  font-weight: 600;
+}
+
+.btn-back:hover {
+  background: rgba(66, 255, 28, 0.1);
+  box-shadow: 0 0 10px rgba(66, 255, 28, 0.2);
+}
+
+.btn-center {
+  display: block;
+  margin: 0 auto;
+}
+
+/* Layout principal: 2 columnas */
+.case-main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 40px;
+}
+
+.case-left {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.case-right {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Header del caso */
+.case-header {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.case-header h1 {
+  font-family: 'Bayon', sans-serif;
+  font-size: 48px;
+  color: #42ff1c;
+  margin: 0;
+  text-shadow: 0 0 10px rgba(66, 255, 28, 0.2);
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Secciones */
+.case-section {
+  background: linear-gradient(135deg, #1c1c1e 0%, #2a2a2e 100%);
+  border: 1px solid #3a3a3e;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.case-section h2 {
+  color: #42ff1c;
+  font-family: 'Bayon', sans-serif;
+  font-size: 18px;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Descripción */
+.description {
+  color: #c0c0c0;
+  font-size: 14px;
+  line-height: 1.8;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Grid de imágenes */
+.images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.image-item {
+  display: block;
+  border-radius: 8px;
+  overflow: hidden;
+  aspect-ratio: 1;
+  border: 2px solid #42ff1c;
+  transition: all 0.3s ease;
+}
+
+.image-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-item:hover {
+  box-shadow: 0 0 15px rgba(66, 255, 28, 0.3);
+  transform: scale(1.05);
+}
+
+/* Videos */
+.videos-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.video-wrapper {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #42ff1c;
+}
+
+.video-wrapper video {
+  width: 100%;
+  display: block;
+}
+
+/* Audios */
+.audios-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.audio-player {
+  background: rgba(66, 255, 28, 0.02);
+  padding: 12px;
+  border-radius: 8px;
+  border: 2px solid #42ff1c;
+}
+
+.audio-player audio {
+  width: 100%;
+}
+
+/* Footer */
+.case-footer {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.loading,
+.error-container {
+  text-align: center;
+  padding: 40px;
+  background: linear-gradient(135deg, #1c1c1e 0%, #2a2a2e 100%);
+  border-radius: 12px;
+  color: #e0e0e0;
+}
+
+.error-container h2 {
+  color: #ff6b6b;
+  font-family: 'Bayon', sans-serif;
+  margin: 0 0 12px 0;
+}
+
+.error-container p {
+  color: #a0a0a0;
+  margin: 0 0 20px 0;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .case-main {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .case-header h1 {
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 768px) {
+  .view-case-page {
+    padding: 70px 16px 30px;
+  }
+
+  .case-main {
+    gap: 20px;
+  }
+
+  .case-section {
+    padding: 20px;
+  }
+
+  .case-header h1 {
+    font-size: 28px;
+  }
+
+  .case-section h2 {
+    font-size: 16px;
+  }
+
+  .images-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .case-main {
+    gap: 16px;
+  }
+
+  .case-header h1 {
+    font-size: 24px;
+    letter-spacing: 1px;
+  }
+
+  .case-section {
+    padding: 16px;
+  }
+
+  .case-section h2 {
+    font-size: 14px;
+  }
+
+  .description {
+    font-size: 13px;
+  }
+
+  .images-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .image-item {
+    border-width: 1px;
+  }
+}

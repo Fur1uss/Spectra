@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext.jsx";
 import "./NavBar.css"
 
@@ -7,6 +7,12 @@ const NavBar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const { isLoggedIn } = useContext(AuthContext);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Ocultar NavBar en la página de upload
+    if (location.pathname === '/upload') {
+        return null;
+    }
 
     const handleUploadCase = () => {
         navigate('/upload');
@@ -35,7 +41,7 @@ const NavBar = () => {
             </button>
 
             <ul className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
-                <li><Link to="/" onClick={handleNavClick}>Home</Link></li>
+                {!isLoggedIn && <li><Link to="/" onClick={handleNavClick}>Home</Link></li>}
                 <li><Link to="/hub" onClick={handleNavClick}>Casos</Link></li>
                 {isLoggedIn ? (
                     <>
