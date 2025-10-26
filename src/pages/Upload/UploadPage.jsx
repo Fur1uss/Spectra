@@ -14,14 +14,14 @@ import './UploadPage.css'
 
 const UploadPage = () => {
   const navigate = useNavigate()
-  const { user, isLoggedIn } = useContext(AuthContext)
+  const { user, isLoggedIn, loading: authLoading } = useContext(AuthContext)
 
-  // Redirigir si no está logueado
+  // Redirigir si no está logueado - esperar a que cargue el auth
   useEffect(() => {
-    if (!isLoggedIn) {
+    if (!authLoading && !isLoggedIn) {
       navigate('/login')
     }
-  }, [isLoggedIn, navigate])
+  }, [isLoggedIn, authLoading, navigate])
 
   // Estado del formulario
   const [formData, setFormData] = useState({
@@ -235,6 +235,10 @@ const UploadPage = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (authLoading) {
+    return <div className="upload-page"><p>Cargando...</p></div>
   }
 
   if (!isLoggedIn) {

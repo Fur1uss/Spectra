@@ -8,7 +8,7 @@ const LoginForm = () => {
   const navigate = useNavigate()
   const { login } = useContext(AuthContext)
   
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -18,27 +18,55 @@ const LoginForm = () => {
     setError('')
 
     // Validación
-    if (!username.trim() || !password.trim()) {
+    if (!email.trim() || !password.trim()) {
       setError('Por favor completa todos los campos')
+      return
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('Por favor ingresa un email válido')
       return
     }
 
     setLoading(true)
 
     try {
-      const user = await loginUser(username, password)
+      // Suprimir errores y warnings de Supabase en consola
+      const originalWarn = console.warn
+      const originalError = console.error
+      console.warn = () => {}
+      console.error = () => {}
+
+      const user = await loginUser(email, password)
+      
+      // Restaurar console
+      console.warn = originalWarn
+      console.error = originalError
       
       // Usar la función login del context
       login(user)
       
       // Limpiar formulario
-      setUsername('')
+      setEmail('')
       setPassword('')
       
       // Redirigir al hub
       navigate('/hub')
     } catch (err) {
-      setError(err.message || 'Error al iniciar sesión')
+      // Restaurar console en caso de error
+      console.warn = originalWarn
+      console.error = originalError
+
+      // Mensajes de error más específicos
+      if (err.message.includes('Email not confirmed')) {
+        setError('Por favor confirma tu email primero')
+      } else if (err.message.includes('Invalid login credentials')) {
+        setError('Email o contraseña incorrectos')
+      } else if (err.message.includes('User not found')) {
+        setError('El usuario no existe')
+      } else {
+        setError(err.message || 'Error al iniciar sesión')
+      }
     } finally {
       setLoading(false)
     }
@@ -47,12 +75,13 @@ const LoginForm = () => {
   return (
     <form onSubmit={handleSubmit} className="login-form">
       <div className="form-group">
-        <label htmlFor="username">Nombre de usuario</label>
+        <label htmlFor="email">Correo Electrónico</label>
         <input
-          type="text"
-          id="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          type="email"
+          id="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="tu@email.com"
           disabled={loading}
           required
         />
@@ -65,6 +94,7 @@ const LoginForm = () => {
           id="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
           disabled={loading}
           required
         />

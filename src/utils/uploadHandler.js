@@ -106,21 +106,20 @@ export const uploadFilesToSupabase = async (files, caseId) => {
 
 /**
  * Crea un caso en la base de datos
- * @param {Object} caseData - Datos del caso
+ * @param {Object} caseData - Datos del caso (debe incluir userId)
  * @returns {Promise<{success: boolean, caseId?: number, error?: string}>}
  */
 export const createCase = async (caseData) => {
   try {
     const { data, error } = await supabase
-      .from('Case')
+      .from('case')
       .insert([
         {
-          user: caseData.userId,
-          caseType: caseData.caseTypeId,
-          caseName: caseData.caseName,
+          user_id: caseData.userId,
+          case_type_id: caseData.caseTypeId,
           description: caseData.description,
-          timeHour: caseData.timeHour,
-          location: caseData.locationId
+          time_hour: caseData.timeHour,
+          location_id: caseData.locationId
         }
       ])
       .select()
@@ -150,12 +149,12 @@ export const createCase = async (caseData) => {
 export const saveFilesToDatabase = async (caseId, uploadedUrls) => {
   try {
     const fileRecords = uploadedUrls.map(item => ({
-      Case: caseId,
+      case_id: caseId,
       url: item.url
     }))
 
     const { error } = await supabase
-      .from('Files')
+      .from('files')
       .insert(fileRecords)
 
     if (error) {
@@ -180,7 +179,7 @@ export const createOrGetLocation = async (locationData) => {
   try {
     // Primero buscar si ya existe
     const { data: existingLocation } = await supabase
-      .from('Location')
+      .from('location')
       .select('id')
       .eq('address', locationData.address)
       .eq('country', locationData.country)
@@ -195,11 +194,12 @@ export const createOrGetLocation = async (locationData) => {
 
     // Si no existe, crear nueva
     const { data, error } = await supabase
-      .from('Location')
+      .from('location')
       .insert([
         {
           address: locationData.address,
-          country: locationData.country
+          country: locationData.country,
+          region: locationData.region || null
         }
       ])
       .select()

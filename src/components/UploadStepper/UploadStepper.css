@@ -10,7 +10,7 @@
 
 .upload-stepper-container {
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
   height: calc(100vh - 120px);
   background: linear-gradient(135deg, #1c1c1e 0%, #2a2a2e 100%);
   border: 1px solid #3a3a3e;

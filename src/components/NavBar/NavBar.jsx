@@ -9,8 +9,8 @@ const NavBar = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Ocultar NavBar en la página de upload
-    if (location.pathname === '/upload') {
+    // Ocultar NavBar en la página de upload y en la vista de caso
+    if (location.pathname === '/upload' || location.pathname.startsWith('/case/')) {
         return null;
     }
 

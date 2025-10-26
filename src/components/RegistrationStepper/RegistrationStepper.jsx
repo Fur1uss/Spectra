@@ -9,6 +9,7 @@ const RegistrationStepper = () => {
   const { login } = useContext(AuthContext)
   
   const [currentStep, setCurrentStep] = useState(1)
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -105,6 +106,12 @@ const RegistrationStepper = () => {
     setLoading(true)
 
     try {
+      // Suprimir errores y warnings de Supabase en consola
+      const originalWarn = console.warn
+      const originalError = console.error
+      console.warn = () => {}
+      console.error = () => {}
+
       const userData = {
         first_name: formData.first_name,
         last_name: formData.last_name,
@@ -114,18 +121,28 @@ const RegistrationStepper = () => {
         password: formData.password,
       }
 
-      const newUser = await registerUser(userData)
+      const response = await registerUser(userData)
       
-      // Usar la función login del context
-      login(newUser)
+      // Restaurar console
+      console.warn = originalWarn
+      console.error = originalError
       
-      // Redirigir al hub
-      navigate('/hub')
+      // Mostrar modal de confirmación
+      setShowConfirmationModal(true)
     } catch (err) {
+      // Restaurar console en caso de error
+      console.warn = originalWarn
+      console.error = originalError
+
       setError(err.message || 'Error al registrarse')
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleGoToLogin = () => {
+    setShowConfirmationModal(false)
+    navigate('/login')
   }
 
   return (
@@ -295,6 +312,51 @@ const RegistrationStepper = () => {
           </div>
         )}
       </form>
+
+      {/* Modal de Confirmación */}
+      {showConfirmationModal && (
+        <div className="confirmation-modal-overlay">
+          <div className="confirmation-modal">
+            <div className="modal-header">
+              <h2>✉️ Confirma tu Correo</h2>
+            </div>
+            
+            <div className="modal-content">
+              <p className="modal-message">
+                Hemos enviado un enlace de confirmación a tu correo electrónico.
+              </p>
+              
+              <p className="modal-instruction">
+                Presiona el enlace en el correo para confirmar tu cuenta y luego podrás ingresar con tus credenciales.
+              </p>
+
+              <div className="modal-steps">
+                <div className="step-item">
+                  <span className="step-number">1</span>
+                  <p>Abre tu correo</p>
+                </div>
+                <div className="step-item">
+                  <span className="step-number">2</span>
+                  <p>Presiona el enlace</p>
+                </div>
+                <div className="step-item">
+                  <span className="step-number">3</span>
+                  <p>Ingresa a tu cuenta</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="btn-go-login" 
+                onClick={handleGoToLogin}
+              >
+                Ir a Ingresar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,73 +1,17 @@
-import bcrypt from 'bcryptjs'
 import { supabase } from './supabase'
 
 /**
- * Hashea una contraseña con salt
- * @param {string} password - Contraseña en texto plano
- * @returns {Promise<string>} - Contraseña hasheada
- */
-export const hashPassword = async (password) => {
-  const saltRounds = 10 // Número de rounds para generar el salt (más alto = más seguro pero más lento)
-  return await bcrypt.hash(password, saltRounds)
-}
-
-/**
- * Verifica una contraseña contra su hash
- * @param {string} password - Contraseña en texto plano
- * @param {string} hash - Hash almacenado en la BD
- * @returns {Promise<boolean>} - True si la contraseña es correcta
- */
-export const verifyPassword = async (password, hash) => {
-  return await bcrypt.compare(password, hash)
-}
-
-/**
- * Realiza login de usuario
- * @param {string} username - Nombre de usuario
- * @param {string} password - Contraseña en texto plano
- * @returns {Promise<Object>} - Datos del usuario si es exitoso
- * @throws {Error} - Si las credenciales son inválidas
- */
-export const loginUser = async (username, password) => {
-  try {
-    // Buscar usuario por username
-    const { data: users, error: fetchError } = await supabase
-      .from('User')
-      .select('*')
-      .eq('username', username)
-
-    if (fetchError || !users || users.length === 0) {
-      throw new Error('Usuario o contraseña incorrectos')
-    }
-
-    const user = users[0]
-
-    // Verificar contraseña
-    const isPasswordValid = await verifyPassword(password, user.password)
-    
-    if (!isPasswordValid) {
-      throw new Error('Usuario o contraseña incorrectos')
-    }
-
-    // Retornar datos del usuario sin la contraseña
-    const { password: _, ...userWithoutPassword } = user
-    return userWithoutPassword
-  } catch (error) {
-    throw error
-  }
-}
-
-/**
- * Registra un nuevo usuario
- * @param {Object} userData - Datos del usuario { username, password, email, first_name, last_name, birthday }
- * @returns {Promise<Object>} - Datos del usuario creado
- * @throws {Error} - Si el usuario ya existe o hay error en la creación
+ * Registra un nuevo usuario en Supabase Auth
+ * NO crea perfil en tabla User (se crea en primer login)
+ * @param {Object} userData - Datos { email, password, username, first_name, last_name, birthday }
+ * @returns {Promise<Object>} - Respuesta de signUp
+ * @throws {Error}
  */
 export const registerUser = async (userData) => {
   try {
-    const { username, password, email, first_name, last_name, birthday } = userData
+    const { email, password, username, first_name, last_name, birthday } = userData
 
-    // Validar que el usuario no exista
+    // Validar que el username no exista en tabla User
     const { data: existingUser, error: checkError } = await supabase
       .from('User')
       .select('id')
@@ -77,32 +21,184 @@ export const registerUser = async (userData) => {
       throw new Error('El nombre de usuario ya está en uso')
     }
 
-    // Hashear contraseña
-    const hashedPassword = await hashPassword(password)
+    // Crear usuario en Supabase Auth (con datos en metadata)
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          username: username,
+          first_name: first_name,
+          last_name: last_name,
+          birthday: birthday
+        }
+      }
+    })
 
-    // Crear usuario
-    const { data: newUser, error: createError } = await supabase
-      .from('User')
-      .insert([
-        {
-          username,
-          password: hashedPassword,
-          email,
-          first_name,
-          last_name,
-          birthday,
-        },
-      ])
-      .select()
-      .single()
-
-    if (createError) {
-      throw new Error(createError.message)
+    if (authError) {
+      throw new Error(authError.message || 'Error al crear la cuenta')
     }
 
-    // Retornar sin la contraseña
-    const { password: _, ...userWithoutPassword } = newUser
-    return userWithoutPassword
+    if (!authData.user) {
+      throw new Error('Error al registrar usuario')
+    }
+
+    // Retornar info del usuario (sin contraseña)
+    return {
+      id: authData.user.id,
+      email: authData.user.email,
+      username: username,
+      message: 'Revisa tu correo para confirmar tu cuenta'
+    }
+  } catch (error) {
+    throw error
+  }
+}
+
+/**
+ * Realiza login de usuario
+ * En PRIMER LOGIN: Crea el perfil en tabla User
+ * @param {string} email - Email del usuario
+ * @param {string} password - Contraseña
+ * @returns {Promise<Object>} - Datos del usuario
+ * @throws {Error}
+ */
+export const loginUser = async (email, password) => {
+  try {
+    // 1. Autenticar con Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
+
+    if (authError) {
+      throw new Error(authError.message || 'Email o contraseña incorrectos')
+    }
+
+    if (!authData.user) {
+      throw new Error('Error al obtener datos del usuario')
+    }
+
+    const userId = authData.user.id
+
+    // 2. Verificar si ya existe perfil en tabla user (con manejo silencioso de errores)
+    let existingProfile = null
+    let profileCheckError = null
+
+    try {
+      const { data, error } = await supabase
+        .from('user')
+        .select('*')
+        .eq('id', userId)
+        .single()
+      
+      existingProfile = data
+      profileCheckError = error
+    } catch (err) {
+      // Suprimir errores de red/políticas
+      console.debug('Profile check error (expected on first login):', err.message)
+      profileCheckError = err
+    }
+
+    // Si el perfil ya existe, retornarlo
+    if (existingProfile) {
+      return existingProfile
+    }
+
+    // 3. PRIMER LOGIN: Crear perfil en tabla User
+    if (profileCheckError && profileCheckError.code === 'PGRST116') {
+      // Código PGRST116 = no rows found = primer login
+      const userData = {
+        id: userId,
+        email: authData.user.email,
+        username: authData.user.user_metadata?.username || email.split('@')[0],
+        first_name: authData.user.user_metadata?.first_name,
+        last_name: authData.user.user_metadata?.last_name,
+        birthday: authData.user.user_metadata?.birthday
+      }
+
+      try {
+        const { data: newProfile, error: createError } = await supabase
+          .from('user')
+          .insert([userData])
+          .select()
+          .single()
+
+        if (createError) {
+          console.error('Error creating profile:', createError.message)
+          throw new Error('Error al crear perfil')
+        }
+
+        return newProfile
+      } catch (err) {
+        console.error('Profile creation error:', err.message)
+        throw err
+      }
+    }
+
+    // Otro error
+    if (profileCheckError) {
+      console.warn('Unexpected profile check error:', profileCheckError.message)
+      // Si hay otro error pero el usuario está autenticado, retornar datos de auth
+      return {
+        id: userId,
+        email: authData.user.email,
+        username: authData.user.user_metadata?.username || email.split('@')[0],
+        first_name: authData.user.user_metadata?.first_name,
+        last_name: authData.user.user_metadata?.last_name,
+        birthday: authData.user.user_metadata?.birthday
+      }
+    }
+  } catch (error) {
+    throw error
+  }
+}
+
+/**
+ * Obtiene el usuario actual autenticado
+ * @returns {Promise<Object>} - Datos del usuario actual
+ */
+export const getCurrentUser = async () => {
+  try {
+    const { data: authData, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !authData.user) {
+      throw new Error('No hay usuario autenticado')
+    }
+
+    // Obtener perfil desde tabla user
+    const { data: userProfile, error: profileError } = await supabase
+      .from('user')
+      .select('*')
+      .eq('id', authData.user.id)
+      .single()
+
+    if (profileError) {
+      console.warn('Perfil no encontrado:', profileError)
+    }
+
+    const userData = {
+      id: authData.user.id,
+      email: authData.user.email,
+      ...userProfile
+    }
+
+    return userData
+  } catch (error) {
+    throw error
+  }
+}
+
+/**
+ * Realiza logout del usuario
+ * @returns {Promise<void>}
+ */
+export const logoutUser = async () => {
+  try {
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      throw error
+    }
   } catch (error) {
     throw error
   }
@@ -110,13 +206,13 @@ export const registerUser = async (userData) => {
 
 /**
  * Obtiene un usuario por ID
- * @param {number} userId - ID del usuario
- * @returns {Promise<Object>} - Datos del usuario sin contraseña
+ * @param {string} userId - ID del usuario (UUID)
+ * @returns {Promise<Object>} - Datos del usuario
  */
 export const getUserById = async (userId) => {
   try {
     const { data: user, error } = await supabase
-      .from('User')
+      .from('user')
       .select('*')
       .eq('id', userId)
       .single()
@@ -125,10 +221,37 @@ export const getUserById = async (userId) => {
       throw new Error('Usuario no encontrado')
     }
 
-    // Retornar sin contraseña
-    const { password: _, ...userWithoutPassword } = user
-    return userWithoutPassword
+    return user
   } catch (error) {
     throw error
+  }
+}
+
+/**
+ * Limpia completamente toda la sesión: localStorage, sessionStorage y cookies
+ * @returns {Object} - {success: boolean, error?: string}
+ */
+export const clearAllStorage = () => {
+  try {
+    // Limpiar localStorage
+    localStorage.clear()
+
+    // Limpiar sessionStorage
+    sessionStorage.clear()
+
+    // Limpiar todas las cookies
+    document.cookie.split(';').forEach(cookie => {
+      const eqPos = cookie.indexOf('=')
+      const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim()
+      if (name) {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`
+      }
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error clearing storage:', error.message)
+    return { success: false, error: error.message }
   }
 }

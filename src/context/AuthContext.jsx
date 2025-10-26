@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
+import { clearAllStorage } from '../utils/auth.js';
 
 export const AuthContext = createContext();
 
@@ -58,11 +59,17 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
-        localStorage.removeItem('user');
-        localStorage.removeItem('userId');
+        // Limpiar todo: localStorage, sessionStorage y cookies
+        clearAllStorage();
+        
         setUser(null);
         setIsLoggedIn(false);
         window.dispatchEvent(new Event('sessionChange'));
+        
+        // Recargar la página después de logout para asegurar limpieza completa
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 300);
     };
 
     return (

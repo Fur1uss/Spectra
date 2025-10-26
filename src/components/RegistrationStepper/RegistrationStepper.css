@@ -225,6 +225,149 @@
   cursor: not-allowed;
 }
 
+/* ========== MODAL DE CONFIRMACIÓN ========== */
+.confirmation-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.confirmation-modal {
+  background: #1C1C1E;
+  border: 2px solid #42ff1c;
+  border-radius: 12px;
+  max-width: 450px;
+  width: 90%;
+  box-shadow: 0 0 30px rgba(66, 255, 28, 0.3);
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid rgba(66, 255, 28, 0.2);
+}
+
+.modal-header h2 {
+  color: #42ff1c;
+  font-size: 24px;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.modal-content {
+  padding: 24px;
+}
+
+.modal-message {
+  color: #e0e0e0;
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+  font-weight: 500;
+}
+
+.modal-instruction {
+  color: #c0c0c0;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 24px 0;
+}
+
+.modal-steps {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.step-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #42ff1c;
+  color: #1C1C1E;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.step-item p {
+  color: #c0c0c0;
+  font-size: 12px;
+  text-align: center;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.modal-footer {
+  padding: 16px 24px 24px;
+  border-top: 1px solid rgba(66, 255, 28, 0.2);
+}
+
+.btn-go-login {
+  width: 100%;
+  background: #42ff1c;
+  color: #1C1C1E;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-go-login:hover {
+  background: #3dd915;
+  box-shadow: 0 0 15px rgba(66, 255, 28, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-go-login:active {
+  transform: translateY(0);
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .registration-stepper {

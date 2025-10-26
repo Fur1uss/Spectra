@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthContext } from '../../context/AuthContext.jsx'
 import SuccessModal from '../SuccessModal/SuccessModal.jsx'
+import LocationSelector from '../LocationSelector/LocationSelector.jsx'
 import {
   validateFiles,
   uploadFilesToSupabase,
@@ -14,7 +15,7 @@ import './UploadStepper.css'
 
 const UploadStepper = () => {
   const navigate = useNavigate()
-  const { user, isLoggedIn } = useContext(AuthContext)
+  const { user, isLoggedIn, loading: authLoading } = useContext(AuthContext)
 
   // Estados
   const [currentStep, setCurrentStep] = useState(1)
@@ -35,21 +36,21 @@ const UploadStepper = () => {
 
   const [fieldErrors, setFieldErrors] = useState({})
 
-  // Protección de ruta
+  // Protección de ruta - esperar a que cargue el auth
   useEffect(() => {
-    if (!isLoggedIn) {
+    if (!authLoading && !isLoggedIn) {
       navigate('/login')
     }
-  }, [isLoggedIn, navigate])
+  }, [isLoggedIn, authLoading, navigate])
 
   // Cargar tipos de casos
   useEffect(() => {
     const loadCaseTypes = async () => {
       try {
         const { data, error } = await supabase
-          .from('Case_Type')
+          .from('case_type')
           .select('*')
-          .order('nombre_Caso', { ascending: true })
+          .order('nombre_caso', { ascending: true })
 
         if (error) {
           throw error
@@ -214,6 +215,12 @@ const UploadStepper = () => {
     setLoading(true)
 
     try {
+      // Suprimir errores y warnings de Supabase en consola
+      const originalWarn = console.warn
+      const originalError = console.error
+      console.warn = () => {}
+      console.error = () => {}
+
       // 1. Crear ubicación
       const locationResult = await createOrGetLocation({
         country: formData.country,
@@ -255,6 +262,10 @@ const UploadStepper = () => {
         throw new Error(filesResult.error)
       }
 
+      // Restaurar console
+      console.warn = originalWarn
+      console.error = originalError
+
       // Mostrar modal de éxito
       setSuccessCaseId(caseId)
       setShowSuccess(true)
@@ -272,13 +283,20 @@ const UploadStepper = () => {
       setCurrentStep(1)
       setFieldErrors({})
     } catch (error) {
-      console.error('Error al subir caso:', error)
+      // Restaurar console en caso de error
+      console.warn = originalWarn
+      console.error = originalError
+
       setFieldErrors({
         submit: error.message || 'Error al subir el caso. Intenta de nuevo.'
       })
     } finally {
       setLoading(false)
     }
+  }
+
+  if (authLoading) {
+    return <div className="upload-stepper-page"><p>Cargando...</p></div>
   }
 
   if (!isLoggedIn) {
@@ -372,50 +390,28 @@ const UploadStepper = () => {
           {currentStep === 2 && (
             <div className="form-step">
               <h2>📍 ¿DÓNDE pasó?</h2>
-
-              <div className="form-group">
-                <label htmlFor="country">País *</label>
-                <input
-                  type="text"
-                  id="country"
-                  name="country"
-                  value={formData.country}
-                  onChange={handleInputChange}
-                  placeholder="Ej: Argentina"
-                  className={fieldErrors.country ? 'error' : ''}
-                />
-                {fieldErrors.country && (
-                  <span className="field-error">{fieldErrors.country}</span>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="region">Región/Provincia (opcional)</label>
-                <input
-                  type="text"
-                  id="region"
-                  name="region"
-                  value={formData.region}
-                  onChange={handleInputChange}
-                  placeholder="Ej: Buenos Aires"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="address">Dirección/Localidad *</label>
-                <input
-                  type="text"
-                  id="address"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  placeholder="Ej: Calle Principal 123, La Plata"
-                  className={fieldErrors.address ? 'error' : ''}
-                />
-                {fieldErrors.address && (
-                  <span className="field-error">{fieldErrors.address}</span>
-                )}
-              </div>
+              <LocationSelector 
+                onLocationSelect={(location) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    country: location.country,
+                    region: location.region,
+                    address: location.address
+                  }))
+                  // Limpiar errores de ubicación
+                  setFieldErrors(prev => {
+                    const newErrors = { ...prev }
+                    delete newErrors.country
+                    delete newErrors.address
+                    return newErrors
+                  })
+                }}
+                initialValue={{
+                  country: formData.country,
+                  region: formData.region,
+                  address: formData.address
+                }}
+              />
             </div>
           )}
 

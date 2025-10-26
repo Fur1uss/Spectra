@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../utils/supabase.js";
+import { logoutUser, clearAllStorage } from "../../utils/auth.js";
 import { AuthContext } from "../../context/AuthContext.jsx";
 import "./ProfilePage.css";
 
@@ -23,7 +24,7 @@ const ProfilePage = () => {
                 
                 // Obtener datos actualizados del usuario desde Supabase
                 const { data, error } = await supabase
-                    .from('User')
+                    .from('user')
                     .select('*')
                     .eq('id', userData.id);
 
@@ -43,9 +44,32 @@ const ProfilePage = () => {
         loadUserProfile();
     }, [navigate]);
 
-    const handleLogout = () => {
-        logout();
-        navigate('/');
+    const handleLogout = async () => {
+        try {
+            // Suprimir errores de Supabase
+            const originalWarn = console.warn;
+            const originalError = console.error;
+            console.warn = () => {};
+            console.error = () => {};
+
+            // Logout de Supabase Auth
+            await logoutUser();
+
+            // Limpiar todo: localStorage, sessionStorage y cookies
+            clearAllStorage();
+
+            // Restaurar console
+            console.warn = originalWarn;
+            console.error = originalError;
+
+            // Limpiar contexto (esto también redirige a /)
+            logout();
+        } catch (error) {
+            console.error('Error during logout:', error);
+            // Aún así limpia el contexto local
+            clearAllStorage();
+            logout();
+        }
     };
 
     const handleBackHome = () => {
