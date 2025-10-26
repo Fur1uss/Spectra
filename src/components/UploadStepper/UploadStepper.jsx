@@ -48,9 +48,9 @@ const UploadStepper = () => {
     const loadCaseTypes = async () => {
       try {
         const { data, error } = await supabase
-          .from('case_type')
+          .from('Case_Type')
           .select('*')
-          .order('nombre_caso', { ascending: true })
+          .order('nombre_Caso', { ascending: true })
 
         if (error) {
           throw error

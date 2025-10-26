@@ -1,0 +1,9 @@
+/* Página principal - Main */
+h1 {
+    font-size: 48px;
+    color: #00ff00;
+    text-align: center;
+    margin-top: 100px;
+    line-height: 1.4;
+    letter-spacing: 2px;
+}

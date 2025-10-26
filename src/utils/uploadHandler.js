@@ -112,14 +112,14 @@ export const uploadFilesToSupabase = async (files, caseId) => {
 export const createCase = async (caseData) => {
   try {
     const { data, error } = await supabase
-      .from('case')
+      .from('Case')
       .insert([
         {
-          user_id: caseData.userId,
-          case_type_id: caseData.caseTypeId,
+          user: caseData.userId,
+          caseType: caseData.caseTypeId,
           description: caseData.description,
-          time_hour: caseData.timeHour,
-          location_id: caseData.locationId
+          timeHour: caseData.timeHour,
+          location: caseData.locationId
         }
       ])
       .select()
@@ -149,12 +149,12 @@ export const createCase = async (caseData) => {
 export const saveFilesToDatabase = async (caseId, uploadedUrls) => {
   try {
     const fileRecords = uploadedUrls.map(item => ({
-      case_id: caseId,
+      Case: caseId,
       url: item.url
     }))
 
     const { error } = await supabase
-      .from('files')
+      .from('Files')
       .insert(fileRecords)
 
     if (error) {
@@ -179,7 +179,7 @@ export const createOrGetLocation = async (locationData) => {
   try {
     // Primero buscar si ya existe
     const { data: existingLocation } = await supabase
-      .from('location')
+      .from('Location')
       .select('id')
       .eq('address', locationData.address)
       .eq('country', locationData.country)
@@ -194,7 +194,7 @@ export const createOrGetLocation = async (locationData) => {
 
     // Si no existe, crear nueva
     const { data, error } = await supabase
-      .from('location')
+      .from('Location')
       .insert([
         {
           address: locationData.address,

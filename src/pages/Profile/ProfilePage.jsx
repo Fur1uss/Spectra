@@ -24,7 +24,7 @@ const ProfilePage = () => {
                 
                 // Obtener datos actualizados del usuario desde Supabase
                 const { data, error } = await supabase
-                    .from('user')
+                    .from('User')
                     .select('*')
                     .eq('id', userData.id);
 

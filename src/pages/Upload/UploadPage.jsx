@@ -45,9 +45,9 @@ const UploadPage = () => {
     const loadCaseTypes = async () => {
       try {
         const { data, error } = await supabase
-          .from('case_type')
-          .select('id, nombre_caso')
-          .order('nombre_caso', { ascending: true })
+          .from('Case_Type')
+          .select('id, nombre_Caso')
+          .order('nombre_Caso', { ascending: true })
 
         if (error) throw error
         setCaseTypes(data || [])
@@ -267,7 +267,7 @@ const UploadPage = () => {
               <option value="">-- Selecciona un tipo --</option>
               {caseTypes.map(type => (
                 <option key={type.id} value={type.id}>
-                  {type.nombre_caso}
+                  {type.nombre_Caso}
                 </option>
               ))}
             </select>

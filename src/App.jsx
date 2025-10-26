@@ -8,12 +8,12 @@ import LandingPage from './pages/LandingPage/LandingPage.jsx'
 import LoginPage from './pages/Login/LoginPage.jsx'
 import RegistrationPage from './pages/Main/RegistrationPage.jsx'
 import Main from './pages/Main/Main.jsx'
+import Hub from './pages/Hub/Hub.jsx'
 import ProfilePage from './pages/Profile/ProfilePage.jsx'
 import UploadStepper from './components/UploadStepper/UploadStepper.jsx'
 import ViewCase from './pages/ViewCase/ViewCase.jsx'
 
 // Componentes temporales para páginas sin implementar
-const Hub = () => <h1>Hub</h1>
 const ExtraCase = () => <h1>Caso Extra</h1>
 
 function App() {

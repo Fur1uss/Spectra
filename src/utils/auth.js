@@ -81,13 +81,13 @@ export const loginUser = async (email, password) => {
 
     const userId = authData.user.id
 
-    // 2. Verificar si ya existe perfil en tabla user (con manejo silencioso de errores)
+    // 2. Verificar si ya existe perfil en tabla User (con manejo silencioso de errores)
     let existingProfile = null
     let profileCheckError = null
 
     try {
       const { data, error } = await supabase
-        .from('user')
+        .from('User')
         .select('*')
         .eq('id', userId)
         .single()
@@ -119,7 +119,7 @@ export const loginUser = async (email, password) => {
 
       try {
         const { data: newProfile, error: createError } = await supabase
-          .from('user')
+          .from('User')
           .insert([userData])
           .select()
           .single()
@@ -166,9 +166,9 @@ export const getCurrentUser = async () => {
       throw new Error('No hay usuario autenticado')
     }
 
-    // Obtener perfil desde tabla user
+    // Obtener perfil desde tabla User
     const { data: userProfile, error: profileError } = await supabase
-      .from('user')
+      .from('User')
       .select('*')
       .eq('id', authData.user.id)
       .single()
@@ -212,7 +212,7 @@ export const logoutUser = async () => {
 export const getUserById = async (userId) => {
   try {
     const { data: user, error } = await supabase
-      .from('user')
+      .from('User')
       .select('*')
       .eq('id', userId)
       .single()
