@@ -1,15 +1,16 @@
-import React, { useState, useContext, useEffect } from 'react'
+import React, { useState, useContext, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthContext } from '../../context/AuthContext.jsx'
 import SuccessModal from '../SuccessModal/SuccessModal.jsx'
 import LocationSelector from '../LocationSelector/LocationSelector.jsx'
+import FileUploader from '../FileUploader/FileUploader.jsx'
 import {
   validateFiles,
   uploadFilesToSupabase,
   createCase,
-  saveFilesToDatabase,
-  createOrGetLocation
+  saveFilesToDatabase
 } from '../../utils/uploadHandler.js'
+import { locationService } from '../../utils/locationService.js'
 import { supabase } from '../../utils/supabase.js'
 import './UploadStepper.css'
 
@@ -28,7 +29,6 @@ const UploadStepper = () => {
     caseType: '',
     caseName: '',
     country: '',
-    region: '',
     address: '',
     description: '',
     files: []
@@ -95,11 +95,8 @@ const UploadStepper = () => {
         break
 
       case 'address':
-        if (!value.trim()) {
-          errors.address = 'Ingresa la dirección'
-        } else {
-          delete errors.address
-        }
+        // Dirección es opcional, no validamos
+        delete errors.address
         break
 
       case 'description':
@@ -134,20 +131,17 @@ const UploadStepper = () => {
     }
 
     if (step === 3) {
-      stepValid = validateField('description', formData.description) && stepValid
+      // Archivos son opcionales, no validamos
+      stepValid = true
     }
 
     if (step === 4) {
-      if (formData.files.length === 0) {
-        setFieldErrors({ files: 'Selecciona al menos 1 archivo' })
-        return false
-      }
-      const validation = validateFiles(formData.files)
-      if (!validation.isValid) {
-        setFieldErrors({ files: validation.errors.join(' | ') })
-        return false
-      }
-      setFieldErrors({})
+      stepValid = validateField('description', formData.description) && stepValid
+    }
+
+    if (step === 5) {
+      // Resumen - no validaciones adicionales
+      stepValid = true
     }
 
     return stepValid
@@ -208,23 +202,23 @@ const UploadStepper = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!validateStep(4)) {
+    if (!validateStep(5)) {
       return
     }
 
     setLoading(true)
 
+    // Suprimir errores y warnings de Supabase en consola
+    const originalWarn = console.warn
+    const originalError = console.error
+    console.warn = () => {}
+    console.error = () => {}
+
     try {
-      // Suprimir errores y warnings de Supabase en consola
-      const originalWarn = console.warn
-      const originalError = console.error
-      console.warn = () => {}
-      console.error = () => {}
 
       // 1. Crear ubicación
-      const locationResult = await createOrGetLocation({
+      const locationResult = await locationService.createOrGetLocation({
         country: formData.country,
-        region: formData.region || '',
         address: formData.address
       })
 
@@ -275,7 +269,6 @@ const UploadStepper = () => {
         caseType: '',
         caseName: '',
         country: '',
-        region: '',
         address: '',
         description: '',
         files: []
@@ -294,6 +287,36 @@ const UploadStepper = () => {
       setLoading(false)
     }
   }
+
+  // Manejar cambio de ubicación
+  const handleLocationChange = useCallback((location) => {
+    setFormData(prev => ({
+      ...prev,
+      country: location.country,
+      address: location.address
+    }))
+    // Limpiar errores de ubicación
+    setFieldErrors(prev => {
+      const newErrors = { ...prev }
+      delete newErrors.country
+      delete newErrors.address
+      return newErrors
+    })
+  }, [])
+
+  // Manejar cambio de archivos
+  const handleFilesChange = useCallback((files) => {
+    setFormData(prev => ({
+      ...prev,
+      files: files
+    }))
+    // Limpiar errores de archivos
+    setFieldErrors(prev => {
+      const newErrors = { ...prev }
+      delete newErrors.files
+      return newErrors
+    })
+  }, [])
 
   if (authLoading) {
     return <div className="upload-stepper-page"><p>Cargando...</p></div>
@@ -341,7 +364,7 @@ const UploadStepper = () => {
         </div>
 
         {/* Form */}
-        <form className="upload-form" onSubmit={handleSubmit}>
+        <div className="upload-form">
           {/* STEP 1: Type & Time */}
           {currentStep === 1 && (
             <div className="form-step">
@@ -391,32 +414,30 @@ const UploadStepper = () => {
             <div className="form-step">
               <h2>📍 ¿DÓNDE pasó?</h2>
               <LocationSelector 
-                onLocationSelect={(location) => {
-                  setFormData(prev => ({
-                    ...prev,
-                    country: location.country,
-                    region: location.region,
-                    address: location.address
-                  }))
-                  // Limpiar errores de ubicación
-                  setFieldErrors(prev => {
-                    const newErrors = { ...prev }
-                    delete newErrors.country
-                    delete newErrors.address
-                    return newErrors
-                  })
-                }}
-                initialValue={{
+                onLocationChange={handleLocationChange}
+                initialData={{
                   country: formData.country,
-                  region: formData.region,
                   address: formData.address
                 }}
+                errors={fieldErrors}
               />
             </div>
           )}
 
-          {/* STEP 3: Description */}
+          {/* STEP 3: Files */}
           {currentStep === 3 && (
+            <div className="form-step">
+              <h2>📁 ARCHIVOS MULTIMEDIA</h2>
+              <FileUploader 
+                onFilesChange={handleFilesChange}
+                initialFiles={formData.files}
+                errors={fieldErrors}
+              />
+            </div>
+          )}
+
+          {/* STEP 4: Description */}
+          {currentStep === 4 && (
             <div className="form-step">
               <h2>📝 CUÉNTANOS MÁS</h2>
 
@@ -429,6 +450,11 @@ const UploadStepper = () => {
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                    }
+                  }}
                   placeholder="Describe detalladamente lo que viste..."
                   rows="5"
                   className={fieldErrors.description ? 'error' : ''}
@@ -443,8 +469,8 @@ const UploadStepper = () => {
             </div>
           )}
 
-          {/* STEP 4: Multimedia */}
-          {currentStep === 4 && (
+          {/* STEP 5: Summary */}
+          {currentStep === 5 && (
             <div className="form-step">
               <h2>📸 ¿TIENES EVIDENCIA?</h2>
 
@@ -516,12 +542,12 @@ const UploadStepper = () => {
                 SIGUIENTE →
               </button>
             ) : (
-              <button type="submit" className="btn-submit" disabled={loading}>
+              <button type="button" className="btn-submit" onClick={handleSubmit} disabled={loading}>
                 {loading ? 'Subiendo caso...' : 'SUBIR CASO'}
               </button>
             )}
           </div>
-        </form>
+        </div>
       </div>
 
       {/* Success Modal */}

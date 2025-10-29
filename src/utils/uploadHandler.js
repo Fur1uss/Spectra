@@ -115,8 +115,9 @@ export const createCase = async (caseData) => {
       .from('Case')
       .insert([
         {
-          user: caseData.userId,
+          user_id: caseData.userId,
           caseType: caseData.caseTypeId,
+          caseName: caseData.caseName,
           description: caseData.description,
           timeHour: caseData.timeHour,
           location: caseData.locationId
@@ -150,7 +151,8 @@ export const saveFilesToDatabase = async (caseId, uploadedUrls) => {
   try {
     const fileRecords = uploadedUrls.map(item => ({
       Case: caseId,
-      url: item.url
+      url: item.url,
+      type_multimedia: item.type
     }))
 
     const { error } = await supabase

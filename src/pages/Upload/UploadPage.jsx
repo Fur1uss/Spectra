@@ -1,14 +1,16 @@
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect, useContext, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthContext } from '../../context/AuthContext.jsx'
 import SuccessModal from '../../components/SuccessModal/SuccessModal.jsx'
+import LocationSelector from '../../components/LocationSelector/LocationSelector.jsx'
+import FileUploader from '../../components/FileUploader/FileUploader.jsx'
 import {
   validateFiles,
   uploadFilesToSupabase,
   createCase,
-  saveFilesToDatabase,
-  createOrGetLocation
+  saveFilesToDatabase
 } from '../../utils/uploadHandler.js'
+import { locationService } from '../../utils/locationService.js'
 import { supabase } from '../../utils/supabase.js'
 import './UploadPage.css'
 
@@ -28,9 +30,11 @@ const UploadPage = () => {
     caseType: '',
     description: '',
     timeHour: '',
-    country: '',
-    region: '',
-    address: '',
+    location: {
+      country: '',
+      region: '',
+      address: ''
+    },
     files: []
   })
 
@@ -75,18 +79,19 @@ const UploadPage = () => {
       newErrors.timeHour = 'Selecciona la hora del evento'
     }
 
-    if (!formData.country) {
-      newErrors.country = 'Ingresa el país'
+    if (!formData.location.country) {
+      newErrors.location = { ...errors.location, country: 'Selecciona un país' }
     }
 
-    if (!formData.address) {
-      newErrors.address = 'Ingresa la dirección'
+    if (!formData.location.address) {
+      newErrors.location = { ...errors.location, address: 'Ingresa la dirección' }
     }
 
     if (formData.files.length === 0) {
       newErrors.files = 'Selecciona al menos 1 archivo'
     } else {
-      const validation = validateFiles(formData.files)
+      const fileObjects = formData.files.map(f => f.file || f);
+      const validation = validateFiles(fileObjects)
       if (!validation.isValid) {
         newErrors.files = validation.errors.join(' | ')
       }
@@ -112,54 +117,36 @@ const UploadPage = () => {
     }
   }
 
-  // Manejar selección de archivos
-  const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files)
+  // Manejar cambio de ubicación
+  const handleLocationChange = useCallback((locationData) => {
     setFormData(prev => ({
       ...prev,
-      files: selectedFiles
+      location: locationData
     }))
+    // Limpiar errores de ubicación
+    if (errors.location) {
+      setErrors(prev => ({
+        ...prev,
+        location: {}
+      }))
+    }
+  }, [errors.location])
+
+  // Manejar cambio de archivos
+  const handleFilesChange = useCallback((filesData) => {
+    setFormData(prev => ({
+      ...prev,
+      files: filesData
+    }))
+    // Limpiar error de archivos
     if (errors.files) {
       setErrors(prev => ({
         ...prev,
         files: ''
       }))
     }
-  }
+  }, [errors.files])
 
-  // Manejar drag & drop
-  const handleDragOver = (e) => {
-    e.preventDefault()
-    e.currentTarget.classList.add('drag-over')
-  }
-
-  const handleDragLeave = (e) => {
-    e.currentTarget.classList.remove('drag-over')
-  }
-
-  const handleDrop = (e) => {
-    e.preventDefault()
-    e.currentTarget.classList.remove('drag-over')
-    const droppedFiles = Array.from(e.dataTransfer.files)
-    setFormData(prev => ({
-      ...prev,
-      files: droppedFiles
-    }))
-    if (errors.files) {
-      setErrors(prev => ({
-        ...prev,
-        files: ''
-      }))
-    }
-  }
-
-  // Mostrar nombres de archivos seleccionados
-  const getFileDisplay = () => {
-    if (formData.files.length === 0) {
-      return 'Arrastra archivos aquí o haz clic para seleccionar'
-    }
-    return `${formData.files.length} archivo(s) seleccionado(s)`
-  }
 
   // Manejar envío del formulario
   const handleSubmit = async (e) => {
@@ -173,10 +160,10 @@ const UploadPage = () => {
 
     try {
       // 1. Crear ubicación
-      const locationResult = await createOrGetLocation({
-        country: formData.country,
-        region: formData.region || '',
-        address: formData.address
+      const locationResult = await locationService.createOrGetLocation({
+        country: formData.location.country,
+        region: formData.location.region || '',
+        address: formData.location.address
       })
 
       if (!locationResult.success) {
@@ -199,7 +186,8 @@ const UploadPage = () => {
       const caseId = caseResult.caseId
 
       // 3. Subir archivos a Storage
-      const uploadResult = await uploadFilesToSupabase(formData.files, caseId)
+      const fileObjects = formData.files.map(f => f.file || f);
+      const uploadResult = await uploadFilesToSupabase(fileObjects, caseId)
 
       if (!uploadResult.success) {
         throw new Error(uploadResult.error)
@@ -221,9 +209,11 @@ const UploadPage = () => {
         caseType: '',
         description: '',
         timeHour: '',
-        country: '',
-        region: '',
-        address: '',
+        location: {
+          country: '',
+          region: '',
+          address: ''
+        },
         files: []
       })
       setErrors({})
@@ -306,77 +296,17 @@ const UploadPage = () => {
           </div>
 
           {/* Ubicación */}
-          <div className="form-group-row">
-            <div className="form-group">
-              <label htmlFor="country">País *</label>
-              <input
-                type="text"
-                id="country"
-                name="country"
-                value={formData.country}
-                onChange={handleInputChange}
-                placeholder="Ej: Argentina"
-                className={errors.country ? 'error' : ''}
-              />
-              {errors.country && <span className="error-message">{errors.country}</span>}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="region">Región/Provincia (opcional)</label>
-              <input
-                type="text"
-                id="region"
-                name="region"
-                value={formData.region}
-                onChange={handleInputChange}
-                placeholder="Ej: Buenos Aires"
-              />
-            </div>
-          </div>
-
-          {/* Dirección */}
-          <div className="form-group">
-            <label htmlFor="address">Dirección/Localidad *</label>
-            <input
-              type="text"
-              id="address"
-              name="address"
-              value={formData.address}
-              onChange={handleInputChange}
-              placeholder="Ej: Calle Principal 123, La Plata"
-              className={errors.address ? 'error' : ''}
-            />
-            {errors.address && <span className="error-message">{errors.address}</span>}
-          </div>
+          <LocationSelector
+            onLocationChange={handleLocationChange}
+            initialData={formData.location}
+            errors={errors.location || {}}
+          />
 
           {/* Carga de archivos */}
-          <div className="form-group">
-            <label>Archivos Multimedia *</label>
-            <div
-              className="file-drop-zone"
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <div className="file-drop-icon">📁</div>
-              <p>{getFileDisplay()}</p>
-              <input
-                type="file"
-                id="files"
-                multiple
-                onChange={handleFileChange}
-                accept="image/*,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/wav,audio/m4a,audio/aac"
-                style={{ display: 'none' }}
-              />
-              <label htmlFor="files" className="file-label">
-                Selecciona archivos
-              </label>
-              <p className="file-help">
-                📷 Imágenes: ilimitadas | 🎥 Video: 1 máximo | 🎵 Audios: 2 máximos
-              </p>
-            </div>
-            {errors.files && <span className="error-message">{errors.files}</span>}
-          </div>
+          <FileUploader
+            onFilesChange={handleFilesChange}
+            errors={errors}
+          />
 
           {/* Error general */}
           {errors.submit && (

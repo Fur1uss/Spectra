@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@appletosolutions/reactbits':
+        specifier: ^1.0.3
+        version: 1.0.3(gsap@3.13.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@supabase/supabase-js':
         specifier: ^2.76.1
         version: 2.76.1
@@ -20,6 +23,9 @@ importers:
       fuse.js:
         specifier: ^7.1.0
         version: 7.1.0
+      gsap:
+        specifier: ^3.13.0
+        version: 3.13.0
       leaflet:
         specifier: ^1.9.4
         version: 1.9.4
@@ -68,6 +74,64 @@ importers:
         version: 7.1.7(@types/node@24.9.1)
 
 packages:
+
+  '@appletosolutions/reactbits@1.0.3':
+    resolution: {integrity: sha512-kdodwIrD1UN9C81OMIj9fgLM2vCS0eIIDJ2vUmkEgrI2v+DN16JgsjaGuWTfXrK9QQYh0wI7NiTT6tmbGqC9yw==}
+    peerDependencies:
+      '@chakra-ui/react': ^3.0.0
+      '@emotion/react': ^11.0.0
+      '@emotion/styled': ^11.0.0
+      '@motionone/types': ^10.0.0
+      '@react-three/drei': ^9.0.0 || ^10.0.0
+      '@react-three/fiber': ^8.0.0 || ^9.0.0
+      '@react-three/postprocessing': ^2.0.0 || ^3.0.0
+      '@react-three/rapier': ^1.0.0 || ^2.0.0
+      framer-motion: ^10.0.0 || ^11.0.0 || ^12.0.0
+      gl-matrix: ^3.0.0
+      gsap: ^3.0.0
+      matter-js: ^0.19.0 || ^0.20.0
+      meshline: ^3.0.0
+      ogl: ^1.0.0
+      postprocessing: ^6.0.0
+      react: ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
+      three: ^0.150.0
+      three-stdlib: ^2.0.0
+    peerDependenciesMeta:
+      '@chakra-ui/react':
+        optional: true
+      '@emotion/react':
+        optional: true
+      '@emotion/styled':
+        optional: true
+      '@motionone/types':
+        optional: true
+      '@react-three/drei':
+        optional: true
+      '@react-three/fiber':
+        optional: true
+      '@react-three/postprocessing':
+        optional: true
+      '@react-three/rapier':
+        optional: true
+      framer-motion:
+        optional: true
+      gl-matrix:
+        optional: true
+      gsap:
+        optional: true
+      matter-js:
+        optional: true
+      meshline:
+        optional: true
+      ogl:
+        optional: true
+      postprocessing:
+        optional: true
+      three:
+        optional: true
+      three-stdlib:
+        optional: true
 
   '@babel/code-frame@7.27.1':
     resolution: {integrity: sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg==}
@@ -831,6 +895,9 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
+  gsap@3.13.0:
+    resolution: {integrity: sha512-QL7MJ2WMjm1PHWsoFrAQH/J8wUeqZvMtHO58qdekHpCfhvhSL4gSiz6vJf5EeMP0LOn3ZCprL2ki/gjED8ghVw==}
+
   has-flag@4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
     engines: {node: '>=8'}
@@ -1235,6 +1302,14 @@ packages:
     engines: {node: '>=10'}
 
 snapshots:
+
+  '@appletosolutions/reactbits@1.0.3(gsap@3.13.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
+    dependencies:
+      react: 19.1.1
+      react-dom: 19.1.1(react@19.1.1)
+      react-icons: 5.5.0(react@19.1.1)
+    optionalDependencies:
+      gsap: 3.13.0
 
   '@babel/code-frame@7.27.1':
     dependencies:
@@ -1955,6 +2030,8 @@ snapshots:
   globals@16.4.0: {}
 
   graceful-fs@4.2.11: {}
+
+  gsap@3.13.0: {}
 
   has-flag@4.0.0: {}
 

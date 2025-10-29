@@ -1,12 +1,59 @@
 import React, { useState } from "react";
-import { FaVideo, FaImage, FaMusic } from "react-icons/fa";
+import { FaVideo, FaImage, FaMusic, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import TextPressure from "../../components/TextPressure/TextPressure";
+import { useCases } from "../../hooks/useCases";
 import "./Hub.css";
 
 const Hub = () => {
     const [showFilters, setShowFilters] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedType, setSelectedType] = useState('');
+    
+    const navigate = useNavigate();
+    const { 
+        cases, 
+        loading, 
+        error, 
+        pagination, 
+        caseTypes,
+        searchCases, 
+        applyFilters, 
+        nextPage, 
+        prevPage 
+    } = useCases(1, 6);
 
     const toggleFilters = () => {
         setShowFilters(!showFilters);
+    };
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        if (searchTerm.trim()) {
+            searchCases(searchTerm.trim());
+        } else {
+            applyFilters({ search: '', type: selectedType });
+        }
+    };
+
+    const handleTypeFilter = (type) => {
+        const newType = selectedType === type ? '' : type;
+        setSelectedType(newType);
+        applyFilters({ type: newType, search: searchTerm });
+    };
+
+    const handleCaseClick = (caseId) => {
+        navigate(`/case/${caseId}`);
+    };
+
+    const getTypeIcon = (typeName) => {
+        const type = typeName?.toLowerCase();
+        switch (type) {
+            case 'video': return <FaVideo className="hub-badge-icon" />;
+            case 'image': return <FaImage className="hub-badge-icon" />;
+            case 'audio': return <FaMusic className="hub-badge-icon" />;
+            default: return <FaVideo className="hub-badge-icon" />;
+        }
     };
 
     return(
@@ -14,115 +61,125 @@ const Hub = () => {
             <div className="hub-navegation-container">
                 <div className="navegation-searching-filters-container">
                     <h3 className="search-title">Buscador</h3>
-                    <div className="search-container">
+                    <form className="search-container" onSubmit={handleSearch}>
                         <input 
                             type="text" 
                             placeholder="Buscar casos..." 
                             className="search-input"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                         />
                         <button 
+                            type="button"
                             className="filter-button" 
                             onClick={toggleFilters}
                         >
                             FILTRAR
                         </button>
                         <div className={`filter-dropdown ${showFilters ? 'show' : ''}`}>
-                            <div className="filter-option">
-                                <input type="checkbox" id="video-filter" />
-                                <label htmlFor="video-filter">Video</label>
-                            </div>
-                            <div className="filter-option">
-                                <input type="checkbox" id="image-filter" />
-                                <label htmlFor="image-filter">Imagen</label>
-                            </div>
-                            <div className="filter-option">
-                                <input type="checkbox" id="audio-filter" />
-                                <label htmlFor="audio-filter">Audio</label>
-                            </div>
+                            {caseTypes.map((type) => (
+                                <div key={type.id} className="filter-option">
+                                    <input 
+                                        type="checkbox" 
+                                        id={`${type.nombre_Caso}-filter`}
+                                        checked={selectedType === type.id.toString()}
+                                        onChange={() => handleTypeFilter(type.id.toString())}
+                                    />
+                                    <label htmlFor={`${type.nombre_Caso}-filter`}>{type.nombre_Caso}</label>
+                                </div>
+                            ))}
                         </div>
-                    </div>
+                    </form>
                 </div>
-                <div className="navegation-text-case-type-container"></div>
+                <div className="navegation-text-case-type-container">
+                    <TextPressure
+                        text="TIPOCASO"
+                        width={true}
+                        weight={true}
+                        italic={false}
+                        alpha={false}
+                        stroke={false}
+                        flex={true}
+                        textColor="var(--accent-color)"
+                        minFontSize={16}
+                    />
+                </div>
             </div>
             <div className="hub-content-display">
-                <div className="hub-grid-container">
-                    <div className="hub-box hub-box-1">
-                        Box 1
-                        <div className="hub-box-badges">
-                            <div className="hub-badge">
-                                <FaVideo className="hub-badge-icon" />
-                                <span>Video</span>
-                            </div>
-                            <div className="hub-badge">
-                                <FaImage className="hub-badge-icon" />
-                                <span>Imagen</span>
-                            </div>
-                        </div>
-                        <button className="hub-box-button">INVESTIGAR</button>
+                <button 
+                    className="hub-nav-button hub-nav-left"
+                    onClick={prevPage}
+                    disabled={!pagination.hasPrevPage}
+                >
+                    <FaChevronLeft />
+                </button>
+                
+                {loading ? (
+                    <div className="hub-loading">
+                        <p>Cargando casos...</p>
                     </div>
-                    <div className="hub-box hub-box-2">
-                        Box 2
-                        <div className="hub-box-badges">
-                            <div className="hub-badge">
-                                <FaMusic className="hub-badge-icon" />
-                                <span>Audio</span>
-                            </div>
-                        </div>
-                        <button className="hub-box-button">INVESTIGAR</button>
+                ) : error ? (
+                    <div className="hub-error">
+                        <p>Error: {error}</p>
                     </div>
-                    <div className="hub-box hub-box-3">
-                        Box 3
-                        <div className="hub-box-badges">
-                            <div className="hub-badge">
-                                <FaVideo className="hub-badge-icon" />
-                                <span>Video</span>
+                ) : (
+                    <div className="hub-grid-container">
+                        {cases.map((caseItem, index) => (
+                            <div 
+                                key={caseItem.id} 
+                                className={`hub-box hub-box-${index + 1}`}
+                                onClick={() => handleCaseClick(caseItem.id)}
+                            >
+                                <div className="hub-box-title">{caseItem.caseName || 'Sin nombre'}</div>
+                                <div className="hub-box-badges">
+                                    <div className="hub-badge">
+                                        {getTypeIcon(caseItem.Case_Type?.nombre_Caso)}
+                                        <span>{caseItem.Case_Type?.nombre_Caso || 'Sin tipo'}</span>
+                                    </div>
+                                    {caseItem.Location?.address && (
+                                        <div className="hub-badge">
+                                            <span>📍 {caseItem.Location.address}</span>
+                                        </div>
+                                    )}
+                                    {caseItem.Files && caseItem.Files.length > 0 && (
+                                        <div className="hub-badge">
+                                            <span>📎 {caseItem.Files.length} archivo(s)</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <button 
+                                    className="hub-box-button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleCaseClick(caseItem.id);
+                                    }}
+                                >
+                                    INVESTIGAR
+                                </button>
                             </div>
-                        </div>
-                        <button className="hub-box-button">INVESTIGAR</button>
+                        ))}
+                        
+                        {/* Rellenar espacios vacíos si hay menos de 6 casos */}
+                        {Array.from({ length: Math.max(0, 6 - cases.length) }).map((_, index) => (
+                            <div 
+                                key={`empty-${index}`} 
+                                className={`hub-box hub-box-${cases.length + index + 1} hub-box-empty`}
+                            >
+                                <div className="hub-box-empty-content">
+                                    <p>No hay más casos</p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                    <div className="hub-box hub-box-4">
-                        Box 4
-                        <div className="hub-box-badges">
-                            <div className="hub-badge">
-                                <FaImage className="hub-badge-icon" />
-                                <span>Imagen</span>
-                            </div>
-                            <div className="hub-badge">
-                                <FaMusic className="hub-badge-icon" />
-                                <span>Audio</span>
-                            </div>
-                        </div>
-                        <button className="hub-box-button">INVESTIGAR</button>
-                    </div>
-                    <div className="hub-box hub-box-5">
-                        Box 5
-                        <div className="hub-box-badges">
-                            <div className="hub-badge">
-                                <FaVideo className="hub-badge-icon" />
-                                <span>Video</span>
-                            </div>
-                            <div className="hub-badge">
-                                <FaImage className="hub-badge-icon" />
-                                <span>Imagen</span>
-                            </div>
-                            <div className="hub-badge">
-                                <FaMusic className="hub-badge-icon" />
-                                <span>Audio</span>
-                            </div>
-                        </div>
-                        <button className="hub-box-button">INVESTIGAR</button>
-                    </div>
-                    <div className="hub-box hub-box-6">
-                        Box 6
-                        <div className="hub-box-badges">
-                            <div className="hub-badge">
-                                <FaImage className="hub-badge-icon" />
-                                <span>Imagen</span>
-                            </div>
-                        </div>
-                        <button className="hub-box-button">INVESTIGAR</button>
-                    </div>
-                </div>
+                )}
+                
+                <button 
+                    className="hub-nav-button hub-nav-right"
+                    onClick={nextPage}
+                    disabled={!pagination.hasNextPage}
+                >
+                    <FaChevronRight />
+                </button>
             </div>
             <div className="hub-navegator-display">
                 <div className="hub-pagination-dots">
