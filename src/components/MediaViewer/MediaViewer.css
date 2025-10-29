@@ -1,0 +1,151 @@
+/* ========== MEDIA VIEWER ========== */
+.media-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #ff4444;
+  text-align: center;
+  min-height: 150px;
+}
+
+.error-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.7;
+}
+
+.media-error span {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.media-error small {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+/* ========== CONTAINERS ========== */
+.image-container,
+.video-container,
+.audio-container {
+  position: relative;
+  width: 100%;
+}
+
+.image-container img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #1a1a1a;
+  transition: opacity 0.3s ease;
+}
+
+.image-container img.loading {
+  opacity: 0.5;
+}
+
+.clickable-image {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.clickable-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(66, 255, 28, 0.3);
+}
+
+.video-container .video-player {
+  width: 100%;
+  max-height: 300px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  transition: opacity 0.3s ease;
+}
+
+.video-container .video-player.loading {
+  opacity: 0.5;
+}
+
+.audio-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.audio-container .cassette-icon {
+  font-size: 1.5rem;
+}
+
+.audio-container .audio-player {
+  width: 100%;
+  background: #1a1a1a;
+  border-radius: 4px;
+  transition: opacity 0.3s ease;
+}
+
+.audio-container .audio-player.loading {
+  opacity: 0.5;
+}
+
+.video-description {
+  margin-top: 8px;
+  color: #cccccc;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ========== LOADING OVERLAY ========== */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  z-index: 2;
+}
+
+.loading-spinner-small {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #333;
+  border-top: 2px solid #42ff1c;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .image-container img {
+    height: 150px;
+  }
+  
+  .video-container .video-player {
+    max-height: 200px;
+  }
+  
+  .media-error {
+    min-height: 120px;
+    padding: 1rem;
+  }
+  
+  .error-icon {
+    font-size: 1.5rem;
+  }
+}

@@ -260,28 +260,6 @@
   font-size: 12px !important;
 }
 
-.map-container {
-  width: 100%;
-  height: 300px;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 2px solid #42ff1c;
-  background: rgba(66, 255, 28, 0.05);
-}
-
-.map-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #42ff1c;
-  font-size: 14px;
-  font-weight: 600;
-  text-align: center;
-  padding: 20px;
-  box-sizing: border-box;
-}
 
 /* Comentarios */
 .comments-section h3 {
@@ -608,4 +586,217 @@
     font-size: 11px;
     letter-spacing: 0.5px;
   }
+}
+
+/* ========== ESTADOS DE CARGA Y ERROR ========== */
+.view-case-loading,
+.view-case-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #0f0f11;
+  color: #ffffff;
+  text-align: center;
+  padding: 2rem;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #333;
+  border-top: 3px solid #42ff1c;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.view-case-error h2 {
+  color: #ff4444;
+  margin-bottom: 1rem;
+}
+
+.view-case-error p {
+  margin-bottom: 2rem;
+  opacity: 0.8;
+}
+
+/* ========== ELEMENTOS DE CASO ========== */
+
+.location-info {
+  margin-bottom: 1rem;
+}
+
+.location-info p {
+  margin: 0.5rem 0;
+  color: #cccccc;
+}
+
+.case-meta {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: rgba(66, 255, 28, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(66, 255, 28, 0.2);
+}
+
+.case-meta h3 {
+  color: #42ff1c;
+  margin-bottom: 1rem;
+  font-size: 16px;
+}
+
+.case-meta p {
+  margin: 0.5rem 0;
+  color: #cccccc;
+  font-size: 14px;
+}
+
+/* ========== ARCHIVOS MULTIMEDIA ========== */
+.audio-player {
+  width: 100%;
+  margin-top: 8px;
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+.video-player {
+  width: 100%;
+  max-height: 300px;
+  background: #1a1a1a;
+  border-radius: 8px;
+}
+
+.video-item {
+  margin-bottom: 1rem;
+}
+
+.video-description {
+  margin-top: 8px;
+  color: #cccccc;
+  font-size: 14px;
+}
+
+.no-media {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  font-style: italic;
+}
+
+/* ========== MEJORAS DE CARGA ========== */
+.image-polaroid img {
+  transition: opacity 0.3s ease;
+  background: #1a1a1a;
+  min-height: 200px;
+  object-fit: cover;
+}
+
+.image-polaroid img[src="/placeholder-image.webp"] {
+  opacity: 0.7;
+  filter: grayscale(100%);
+}
+
+.video-player,
+.audio-player {
+  transition: opacity 0.3s ease;
+}
+
+.video-player:not([src]),
+.audio-player:not([src]) {
+  opacity: 0.5;
+}
+
+/* ========== LOADING STATES ========== */
+.images-gallery {
+  position: relative;
+}
+
+.image-polaroid {
+  position: relative;
+  overflow: hidden;
+}
+
+.image-polaroid::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), 
+              linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), 
+              linear-gradient(45deg, transparent 75%, #1a1a1a 75%), 
+              linear-gradient(-45deg, transparent 75%, #1a1a1a 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  opacity: 0.1;
+  z-index: 1;
+}
+
+.image-polaroid img {
+  position: relative;
+  z-index: 2;
+}
+
+.image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.image-error-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff4444;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 3;
+}
+
+.image-polaroid img[src="/placeholder-image.webp"] + .image-error-overlay {
+  opacity: 1;
+}
+
+/* ========== COMENTARIOS ========== */
+.comments-placeholder {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.comments-placeholder p {
+  margin: 0.5rem 0;
+}
+
+.btn-add-comment:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #333;
+  color: #666;
+}
+
+.btn-add-comment:disabled:hover {
+  background: #333;
+  transform: none;
+  box-shadow: none;
 }

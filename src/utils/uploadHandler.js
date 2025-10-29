@@ -1,5 +1,20 @@
 import { supabase } from './supabase.js'
 
+// Función para refrescar URLs firmadas
+export const refreshSignedUrl = async (filePath) => {
+  try {
+    const { data: signedUrl, error } = await supabase.storage
+      .from('multimedia')
+      .createSignedUrl(filePath, 60 * 60 * 24 * 7) // 7 días de validez
+    
+    if (error) throw error
+    return signedUrl.signedUrl
+  } catch (error) {
+    console.error('Error refreshing signed URL:', error)
+    return null
+  }
+}
+
 /**
  * Valida y carga archivos a Supabase Storage
  * Reglas:
@@ -11,6 +26,19 @@ import { supabase } from './supabase.js'
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime']
 const ALLOWED_AUDIO_TYPES = ['audio/mpeg', 'audio/wav', 'audio/m4a', 'audio/aac']
+
+// Helper para obtener el tipo de archivo por extensión
+const getFileTypeFromExtension = (fileName) => {
+  const extension = fileName.split('.').pop().toLowerCase()
+  const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']
+  const videoTypes = ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm']
+  const audioTypes = ['mp3', 'wav', 'ogg', 'aac', 'flac']
+  
+  if (imageTypes.includes(extension)) return 'image'
+  if (videoTypes.includes(extension)) return 'video'
+  if (audioTypes.includes(extension)) return 'audio'
+  return 'unknown'
+}
 
 export const validateFiles = (files) => {
   let imageCount = 0
@@ -59,12 +87,17 @@ export const uploadFilesToSupabase = async (files, caseId) => {
   try {
     const uploadedUrls = []
 
-    for (let file of files) {
+    // Subir archivos en paralelo para mayor velocidad
+    const uploadPromises = files.map(async (fileItem) => {
+      // Extraer el archivo real del objeto fileItem
+      const file = fileItem.file || fileItem
+      const fileType = fileItem.type || getFileTypeFromExtension(file.name)
+      
       let subfolder = 'fotos' // default
 
-      if (ALLOWED_VIDEO_TYPES.includes(file.type)) {
+      if (ALLOWED_VIDEO_TYPES.includes(file.type) || fileType === 'video') {
         subfolder = 'videos'
-      } else if (ALLOWED_AUDIO_TYPES.includes(file.type)) {
+      } else if (ALLOWED_AUDIO_TYPES.includes(file.type) || fileType === 'audio') {
         subfolder = 'audios'
       }
 
@@ -74,26 +107,44 @@ export const uploadFilesToSupabase = async (files, caseId) => {
 
       const { error } = await supabase.storage
         .from('multimedia')
-        .upload(filePath, file)
+        .upload(filePath, file, {
+          contentType: file.type,
+          cacheControl: '3600'
+        })
 
       if (error) {
         throw new Error(`Error al subir ${file.name}: ${error.message}`)
       }
 
-      // Obtener URL pública del archivo
-      const { data: urlData } = supabase.storage
+      // Obtener URL firmada del archivo (no requiere CORS)
+      const { data: signedUrl, error: signedError } = await supabase.storage
         .from('multimedia')
-        .getPublicUrl(filePath)
+        .createSignedUrl(filePath, 60 * 60 * 24 * 7) // 7 días de validez
 
-      uploadedUrls.push({
-        url: urlData.publicUrl,
-        type: file.type
-      })
-    }
+      if (signedError) {
+        console.warn('Error creating signed URL, using public URL:', signedError)
+        // Fallback a URL pública
+        const { data: urlData } = supabase.storage
+          .from('multimedia')
+          .getPublicUrl(filePath)
+        return {
+          url: urlData.publicUrl,
+          type: fileType
+        }
+      }
 
+      return {
+        url: signedUrl.signedUrl,
+        type: fileType
+      }
+    })
+
+    // Esperar a que todos los archivos se suban en paralelo
+    const results = await Promise.all(uploadPromises)
+    
     return {
       success: true,
-      urls: uploadedUrls
+      urls: results
     }
   } catch (error) {
     return {

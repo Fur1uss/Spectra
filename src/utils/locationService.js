@@ -48,19 +48,42 @@ export const locationService = {
     try {
       const { country, address } = locationData;
       
-      // Buscar ubicación existente usando ilike para búsqueda flexible
-      const { data: existingLocation, error: searchError } = await supabase
+      // Si no hay dirección, crear directamente sin buscar
+      if (!address || address.trim() === '') {
+        const { data: newLocation, error: insertError } = await supabase
+          .from('Location')
+          .insert({
+            country,
+            address: ''
+          })
+          .select('id')
+          .single();
+
+        if (insertError) throw insertError;
+        return { success: true, locationId: newLocation.id };
+      }
+
+      // Buscar ubicación existente con timeout
+      const searchPromise = supabase
         .from('Location')
         .select('id')
         .eq('country', country)
-        .ilike('address', address)
+        .ilike('address', `%${address}%`)
         .single();
 
-      if (searchError && searchError.code !== 'PGRST116') {
-        throw searchError;
-      }
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Location search timeout')), 5000)
+      );
 
-      if (existingLocation) {
+      const { data: existingLocation, error: searchError } = await Promise.race([
+        searchPromise,
+        timeoutPromise
+      ]);
+
+      if (searchError && searchError.code !== 'PGRST116') {
+        console.warn('Location search failed, creating new location:', searchError.message);
+        // Si falla la búsqueda, crear nueva ubicación directamente
+      } else if (existingLocation) {
         return { success: true, locationId: existingLocation.id };
       }
 

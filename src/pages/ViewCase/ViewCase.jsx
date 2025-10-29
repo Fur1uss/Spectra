@@ -1,7 +1,10 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import fullpage from 'fullpage.js'
 import 'fullpage.js/dist/fullpage.css'
+import { useCase } from '../../hooks/useCase'
+import MediaViewer from '../../components/MediaViewer/MediaViewer'
+import ImageModal from '../../components/ImageModal/ImageModal'
 import './ViewCase.css'
 
 const ViewCase = () => {
@@ -9,64 +12,17 @@ const ViewCase = () => {
   const navigate = useNavigate()
   const fullpageRef = useRef(null)
   const fullpageApiRef = useRef(null)
+  
+  // Obtener datos del caso desde la base de datos
+  const { caseData, loading, error } = useCase(caseId)
+  
+  // Estado del modal de imagen
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false)
+  const [selectedImage, setSelectedImage] = useState(null)
 
   useEffect(() => {
-    // Datos placeholder - TODO: Fetch from Supabase
-    const caseData = {
-      id: caseId,
-      title: 'Avistamiento OVNI en La Plata',
-      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-      caseType: 'OVNI',
-      country: 'Argentina',
-      region: 'Buenos Aires',
-      address: 'La Plata, Buenos Aires',
-      latitude: -34.9211,
-      longitude: -57.9545,
-      images: [
-        '/placeholder-image.webp',
-        '/placeholder-image.webp',
-        '/placeholder-image.webp'
-      ],
-      videos: [
-        { url: 'https://example.com/video.mp4', description: 'Grabación clara del OVNI' }
-      ],
-      audios: [
-        { url: 'https://example.com/audio.mp3', title: 'Audio 1' },
-        { url: 'https://example.com/audio.mp3', title: 'Audio 2' }
-      ],
-      comments: [
-        { 
-          id: 1,
-          author: 'Usuario 1', 
-          avatar: '/placeholder-image.webp',
-          date: '27/03/2025',
-          text: 'Increíble avistamiento! Yo también lo vi ese día. Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-          likes: 2300,
-          replies: 1000
-        },
-        { 
-          id: 2,
-          author: 'Usuario 2', 
-          avatar: '/placeholder-image.webp',
-          date: '26/03/2025',
-          text: 'Yo vi algo similar hace años en el mismo lugar. Esto es muy interesante y merece investigación.',
-          likes: 1800,
-          replies: 650
-        },
-        { 
-          id: 3,
-          author: 'Usuario 3', 
-          avatar: '/placeholder-image.webp',
-          date: '25/03/2025',
-          text: 'Tienen más evidencia? Me gustaría analizar este caso. Podemos conectar offline?',
-          likes: 950,
-          replies: 420
-        }
-      ]
-    }
-
-    // Inicializar fullPage.js solo si no está ya inicializado
-    if (fullpageRef.current && !fullpageApiRef.current) {
+    // Inicializar fullPage.js solo si no está ya inicializado y los datos están cargados
+    if (fullpageRef.current && !fullpageApiRef.current && caseData && !loading) {
       fullpageApiRef.current = new fullpage(fullpageRef.current, {
         licenseKey: 'GPL-v3.0', // GPLv3 para proyectos open source
         autoScrolling: true,
@@ -98,7 +54,58 @@ const ViewCase = () => {
         fullpageApiRef.current = null
       }
     }
-  }, [caseId])
+  }, [caseId, caseData, loading])
+
+  // Estados de carga y error
+  if (loading) {
+    return (
+      <div className="view-case-loading">
+        <div className="loading-spinner"></div>
+        <p>Cargando caso...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="view-case-error">
+        <h2>Error al cargar el caso</h2>
+        <p>{error}</p>
+        <button onClick={() => navigate('/hub')} className="btn-back">
+          ← Volver al Hub
+        </button>
+      </div>
+    )
+  }
+
+  if (!caseData) {
+    return (
+      <div className="view-case-error">
+        <h2>Caso no encontrado</h2>
+        <p>El caso que buscas no existe o ha sido eliminado.</p>
+        <button onClick={() => navigate('/hub')} className="btn-back">
+          ← Volver al Hub
+        </button>
+      </div>
+    )
+  }
+
+
+  // Separar archivos por tipo
+  const images = caseData?.Files?.filter(file => file.type_multimedia === 'image') || []
+  const videos = caseData?.Files?.filter(file => file.type_multimedia === 'video') || []
+  const audios = caseData?.Files?.filter(file => file.type_multimedia === 'audio') || []
+
+  // Funciones para manejar el modal de imagen
+  const handleImageClick = (image) => {
+    setSelectedImage(image)
+    setIsImageModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsImageModalOpen(false)
+    setSelectedImage(null)
+  }
 
   return (
     <div id="fullpage" ref={fullpageRef}>
@@ -111,48 +118,68 @@ const ViewCase = () => {
       <div className="section">
         <div className="view-case-content">
           <div className="column column-left">
-            <h1 className="case-title">Avistamiento OVNI en La Plata</h1>
+            <h1 className="case-title">{caseData.caseName || 'Sin título'}</h1>
             
             <div className="description-section">
               <h2>Descripción</h2>
-              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+              <p>{caseData.description || 'Sin descripción disponible'}</p>
             </div>
 
-            <div className="audios-section">
-              <div className="audios-container">
-                <div className="audio-item">
-                  <div className="cassette-icon">🎙️</div>
-                  <span>Audio 1</span>
-                </div>
-                <div className="audio-item">
-                  <div className="cassette-icon">🎙️</div>
-                  <span>Audio 2</span>
+            {audios.length > 0 && (
+              <div className="audios-section">
+                <h3>Audios</h3>
+                <div className="audios-container">
+                  {audios.map((audio, index) => (
+                    <MediaViewer
+                      key={audio.id}
+                      file={audio}
+                      type="audio"
+                      index={index}
+                    />
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="column column-right">
-            <div className="images-section">
-              <h3>Imágenes</h3>
-              <div className="images-gallery">
-                <div className="image-polaroid">
-                  <img src="/placeholder-image.webp" alt="Imagen 1" />
-                </div>
-                <div className="image-polaroid">
-                  <img src="/placeholder-image.webp" alt="Imagen 2" />
-                </div>
-                <div className="image-polaroid">
-                  <img src="/placeholder-image.webp" alt="Imagen 3" />
+            {images.length > 0 && (
+              <div className="images-section">
+                <h3>Imágenes ({images.length})</h3>
+                <div className="images-gallery">
+                  {images.map((image, index) => (
+                    <div key={image.id} className="image-polaroid">
+                      <MediaViewer
+                        file={image}
+                        type="image"
+                        index={index}
+                        onImageClick={handleImageClick}
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
 
-            <div className="video-section">
-              <h3>Video</h3>
-              <p className="video-description">Grabación clara del OVNI</p>
-              <button className="btn-see-video">Ver Video</button>
-            </div>
+            {videos.length > 0 && (
+              <div className="video-section">
+                <h3>Videos ({videos.length})</h3>
+                {videos.map((video, index) => (
+                  <MediaViewer
+                    key={video.id}
+                    file={video}
+                    type="video"
+                    index={index}
+                  />
+                ))}
+              </div>
+            )}
+
+            {images.length === 0 && videos.length === 0 && (
+              <div className="no-media">
+                <p>No hay archivos multimedia disponibles</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -162,81 +189,47 @@ const ViewCase = () => {
         <div className="view-case-content">
           <div className="column column-left">
             <div className="case-type-section">
-              <h3>Tipo de Caso</h3>
+              <h3>{caseData.Case_Type?.nombre_Caso || 'Sin tipo'}</h3>
             </div>
 
             <div className="location-section">
               <h3>Ubicación</h3>
-              <div className="map-container">
-                <div className="map-placeholder">
-                  Mapa - Lat: -34.9211, Lng: -57.9545
-                </div>
+              <div className="location-info">
+                <p><strong>País:</strong> {caseData.Location?.country || 'No especificado'}</p>
+                <p><strong>Dirección:</strong> {caseData.Location?.address || 'No especificada'}</p>
               </div>
+            </div>
+
+            <div className="case-meta">
+              <h3>Información del Caso</h3>
+              <p><strong>Subido por:</strong> {caseData.User?.username || 'Usuario desconocido'}</p>
+              <p><strong>Fecha:</strong> {new Date(caseData.timeHour).toLocaleDateString('es-ES')}</p>
+              <p><strong>Hora:</strong> {new Date(caseData.timeHour).toLocaleTimeString('es-ES')}</p>
             </div>
           </div>
 
           <div className="column column-right">
             <div className="comments-section">
               <h3>Comentarios</h3>
-              <div className="comments-list">
-                {[
-                  { 
-                    id: 1,
-                    author: 'Usuario 1', 
-                    avatar: '/placeholder-image.webp',
-                    date: '27/03/2025',
-                    text: 'Increíble avistamiento! Yo también lo vi ese día. Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-                    likes: 2300,
-                    replies: 1000
-                  },
-                  { 
-                    id: 2,
-                    author: 'Usuario 2', 
-                    avatar: '/placeholder-image.webp',
-                    date: '26/03/2025',
-                    text: 'Yo vi algo similar hace años en el mismo lugar. Esto es muy interesante y merece investigación.',
-                    likes: 1800,
-                    replies: 650
-                  },
-                  { 
-                    id: 3,
-                    author: 'Usuario 3', 
-                    avatar: '/placeholder-image.webp',
-                    date: '25/03/2025',
-                    text: 'Tienen más evidencia? Me gustaría analizar este caso. Podemos conectar offline?',
-                    likes: 950,
-                    replies: 420
-                  }
-                ].map(comment => (
-                  <div key={comment.id} className="comment-item">
-                    <div className="comment-avatar">
-                      <img src={comment.avatar} alt={comment.author} />
-                    </div>
-                    <div className="comment-content">
-                      <div className="comment-header">
-                        <span className="comment-author">@{comment.author}</span>
-                        <span className="comment-date">{comment.date}</span>
-                      </div>
-                      <p className="comment-text">{comment.text}</p>
-                      <div className="comment-actions">
-                        <button className="comment-action like">
-                          <span className="icon">👍</span>
-                          <span className="count">{(comment.likes / 1000).toFixed(1)}k</span>
-                        </button>
-                        <button className="comment-action reply">
-                          <span className="icon">💬</span>
-                          <span className="count">{(comment.replies / 1000).toFixed(1)}k</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="comments-placeholder">
+                <p>Los comentarios estarán disponibles próximamente.</p>
+                <p>Mientras tanto, puedes compartir este caso con otros usuarios.</p>
               </div>
-              <button className="btn-add-comment">Comentar</button>
+              <button className="btn-add-comment" disabled>
+                Comentar (Próximamente)
+              </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modal de imagen externo */}
+      <ImageModal
+        isOpen={isImageModalOpen}
+        onClose={handleCloseModal}
+        imageUrl={selectedImage?.url}
+        imageAlt={selectedImage ? `Imagen ${images.findIndex(img => img.id === selectedImage.id) + 1}` : ''}
+      />
     </div>
   )
 }
