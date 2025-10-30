@@ -56,6 +56,11 @@ const Hub = () => {
         }
     };
 
+    // Texto dinámico para el encabezado de tipo
+    const displayedTypeText = selectedType
+        ? (caseTypes.find(t => t.id.toString() === selectedType)?.nombre_Caso || 'TODOS')
+        : 'TODOS'
+
     return(
         <div className="hub-page-container">
             <div className="hub-navegation-container">
@@ -93,7 +98,7 @@ const Hub = () => {
                 </div>
                 <div className="navegation-text-case-type-container">
                     <TextPressure
-                        text="TIPOCASO"
+                        text={displayedTypeText.toUpperCase()}
                         width={true}
                         weight={true}
                         italic={false}
@@ -124,12 +129,23 @@ const Hub = () => {
                     </div>
                 ) : (
                     <div className="hub-grid-container">
-                        {cases.map((caseItem, index) => (
+                        {cases.map((caseItem, index) => {
+                            const coverImage = (caseItem?.Files || []).find(f => f.type_multimedia === 'image')
+                            const coverUrl = coverImage?.url || ''
+                            const hasCover = Boolean(coverUrl)
+                            return (
                             <div 
                                 key={caseItem.id} 
                                 className={`hub-box hub-box-${index + 1}`}
                                 onClick={() => handleCaseClick(caseItem.id)}
                             >
+                                {hasCover && (
+                                    <div 
+                                        className="hub-box-bg"
+                                        style={{ backgroundImage: `url(${coverUrl})` }}
+                                        aria-hidden="true"
+                                    />
+                                )}
                                 <div className="hub-box-title">{caseItem.caseName || 'Sin nombre'}</div>
                                 <div className="hub-box-badges">
                                     <div className="hub-badge">
@@ -157,7 +173,7 @@ const Hub = () => {
                                     INVESTIGAR
                                 </button>
                             </div>
-                        ))}
+                        )})}
                         
                         {/* Rellenar espacios vacíos si hay menos de 6 casos */}
                         {Array.from({ length: Math.max(0, 6 - cases.length) }).map((_, index) => (

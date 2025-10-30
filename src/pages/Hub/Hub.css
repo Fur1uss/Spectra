@@ -19,7 +19,6 @@
     gap: 0;
     justify-items: center;
     align-items: center;
-    background-color: red;
 
     /* PC: dos columnas una al lado de la otra */
     @media (min-width: 768px) {
@@ -36,7 +35,6 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-color: yellow;
     padding: 1rem 4rem;
     gap: 1rem;
 }
@@ -154,7 +152,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: purple;
 }
 
 .navegation-text-case-type-container {
@@ -179,7 +176,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: green;
     position: relative;
 }
 
@@ -225,7 +221,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: blue;
     padding: 0 2rem;
     box-sizing: border-box;
 }
@@ -442,16 +437,29 @@
 
 /* Empty box styles */
 .hub-box-empty {
-    background-color: #f5f5f5;
-    border: 2px dashed #ccc;
+    background-color: var(--background-color);
+    border: 1px solid rgba(255,255,255,0.08);
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
+/* Forzar que los vacíos no tomen los colores de .hub-box-1..6 */
+.hub-box.hub-box-empty {
+    background: var(--background-color) !important;
+    background-image: none !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+}
+
+/* Sin glow/neón en hover para vacíos */
+.hub-box.hub-box-empty:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    transform: none;
+}
+
 .hub-box-empty-content {
     text-align: center;
-    color: #666;
+    color: #cccccc;
     font-family: 'Major Mono Display', monospace;
     font-size: 14px;
 }
@@ -487,6 +495,37 @@
     justify-content: center;
     font-weight: bold;
     position: relative;
+    overflow: hidden; /* para que el bg respete el radio */
+    transition: box-shadow 0.25s ease, transform 0.2s ease;
+}
+
+/* Hover neon accent */
+.hub-box:hover {
+    /* primer shadow simula un borde (0 spread con 1px) sin ocupar espacio */
+    box-shadow: 
+        0 0 0 1px var(--accent-color),
+        0 0 8px var(--accent-color),
+        0 0 18px rgba(66, 255, 28, 0.5),
+        0 6px 18px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+}
+
+/* Capa de fondo para las imágenes de los casos */
+.hub-box-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    z-index: 0;
+}
+
+/* Sutil degradado para legibilidad sin tocar los estilos existentes */
+.hub-box-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.25) 40%, rgba(0,0,0,0.35) 100%);
 }
 
 /* Case title styles */
@@ -590,4 +629,17 @@
 .hub-box-6 {
     grid-area: box6;
     background: #ffe4ea;
+}
+
+/* ==================
+   Overrides para vacíos (deben ir al final para máxima prioridad)
+   ==================*/
+.hub-box-1.hub-box-empty,
+.hub-box-2.hub-box-empty,
+.hub-box-3.hub-box-empty,
+.hub-box-4.hub-box-empty,
+.hub-box-5.hub-box-empty,
+.hub-box-6.hub-box-empty {
+    background: var(--background-color) !important;
+    background-image: none !important;
 }
