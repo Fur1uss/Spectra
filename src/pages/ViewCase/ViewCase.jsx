@@ -5,6 +5,7 @@ import 'fullpage.js/dist/fullpage.css'
 import { useCase } from '../../hooks/useCase'
 import MediaViewer from '../../components/MediaViewer/MediaViewer'
 import ImageModal from '../../components/ImageModal/ImageModal'
+import CommentsSection from '../../components/CommentsSection/CommentsSection'
 import './ViewCase.css'
 
 const ViewCase = () => {
@@ -209,16 +210,7 @@ const ViewCase = () => {
           </div>
 
           <div className="column column-right">
-            <div className="comments-section">
-              <h3>Comentarios</h3>
-              <div className="comments-placeholder">
-                <p>Los comentarios estarán disponibles próximamente.</p>
-                <p>Mientras tanto, puedes compartir este caso con otros usuarios.</p>
-              </div>
-              <button className="btn-add-comment" disabled>
-                Comentar (Próximamente)
-              </button>
-            </div>
+            <CommentsSection caseId={caseId} />
           </div>
         </div>
       </div>
