@@ -40,19 +40,30 @@ export const registerUser = async (userData) => {
     })
 
     if (authError) {
+      console.error('Error en signUp:', authError)
       throw new Error(authError.message || 'Error al crear la cuenta')
     }
 
     if (!authData.user) {
+      console.error('No se creó el usuario:', authData)
       throw new Error('Error al registrar usuario')
     }
+
+    // Verificar si el email se envió
+    console.log('Usuario creado:', {
+      id: authData.user.id,
+      email: authData.user.email,
+      emailConfirmed: authData.user.email_confirmed_at,
+      redirectTo: redirectTo
+    })
 
     // Retornar info del usuario (sin contraseña)
     return {
       id: authData.user.id,
       email: authData.user.email,
       username: username,
-      message: 'Revisa tu correo para confirmar tu cuenta'
+      message: 'Revisa tu correo para confirmar tu cuenta',
+      emailSent: !authData.user.email_confirmed_at // Indica si el email necesita confirmación
     }
   } catch (error) {
     throw error
