@@ -21,11 +21,15 @@ export const registerUser = async (userData) => {
       throw new Error('El nombre de usuario ya está en uso')
     }
 
+    // Obtener la URL base para redirección
+    const redirectTo = `${window.location.origin}/auth/callback`
+    
     // Crear usuario en Supabase Auth (con datos en metadata)
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: redirectTo,
         data: {
           username: username,
           first_name: first_name,

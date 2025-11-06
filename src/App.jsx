@@ -13,6 +13,7 @@ import Hub from './pages/Hub/Hub.jsx'
 import ProfilePage from './pages/Profile/ProfilePage.jsx'
 import UploadStepper from './components/UploadStepper/UploadStepper.jsx'
 import ViewCase from './pages/ViewCase/ViewCase.jsx'
+import AuthCallback from './pages/AuthCallback/AuthCallback.jsx'
 
 // Componentes temporales para páginas sin implementar
 const ExtraCase = () => <h1>Caso Extra</h1>
@@ -20,7 +21,7 @@ const ExtraCase = () => <h1>Caso Extra</h1>
 function App() {
   const location = useLocation()
   
-  const hiddenNavBarRoutes = ['/login', '/registration']
+  const hiddenNavBarRoutes = ['/login', '/registration', '/auth/callback']
   const showNavBar = !hiddenNavBarRoutes.includes(location.pathname)
 
   return (
@@ -35,6 +36,7 @@ function App() {
         <Route path="/upload" element={<UploadStepper />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/case/:caseId" element={<ViewCase />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/extra-case" element={<ExtraCase />} />
       </Routes>
       <Analytics />
