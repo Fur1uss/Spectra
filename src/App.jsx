@@ -1,5 +1,6 @@
 import './App.css'
 import { Routes, Route, useLocation } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 
 import NavBar from './components/NavBar/NavBar.jsx'
 
@@ -36,6 +37,7 @@ function App() {
         <Route path="/case/:caseId" element={<ViewCase />} />
         <Route path="/extra-case" element={<ExtraCase />} />
       </Routes>
+      <Analytics />
     </>
   )
 }
