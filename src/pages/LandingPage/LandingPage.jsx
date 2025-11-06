@@ -1,5 +1,7 @@
 import React from 'react';
 import ElementCard from '../../components/ElementCard/ElementCard.jsx';
+import FeaturedCasesCarousel from '../../components/FeaturedCasesCarousel/FeaturedCasesCarousel.jsx';
+import LandingFooter from '../../components/LandingFooter/LandingFooter.jsx';
 import './LandingPage.css';
 
 const LandingPage = () => {
@@ -29,9 +31,15 @@ const LandingPage = () => {
           </div>
         </section>
         <section className='website-showcases' id='section-config'>
-
+          <FeaturedCasesCarousel />
+        </section>
+        <section className='fear-text-section'>
+          <div className='fear-text-container'>
+            <p className='fear-text-line'>QUE EL MIEDO<br/>NO TE CONSUMA</p>
+          </div>
         </section>
       </main>
+      <LandingFooter />
     </>
   );
 };

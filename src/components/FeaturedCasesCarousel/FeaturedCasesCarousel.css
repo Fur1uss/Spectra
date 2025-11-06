@@ -1,0 +1,505 @@
+/* ========== SECCIÓN PRINCIPAL ========== */
+.featured-cases-section {
+  width: 100%;
+  min-height: 100vh;
+  background: #0f0f11;
+  padding: 60px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ========== TÍTULO PRINCIPAL ========== */
+.featured-cases-title-container {
+  width: 100%;
+  max-width: 1400px;
+  padding: 0 40px;
+  margin-bottom: 80px;
+  text-align: center;
+}
+
+.featured-cases-title {
+  font-family: 'Major Mono Display', monospace;
+  color: #42ff1c;
+  font-size: clamp(24px, 4vw, 50px);
+  line-height: 1.2;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 20px rgba(66, 255, 28, 0.3);
+}
+
+.title-line {
+  display: block;
+  margin-bottom: 16px;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.title-line:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.title-line:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.title-line:nth-child(3) {
+  animation-delay: 0.5s;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========== EFECTO GLITCH EN PARANORMAL ========== */
+.title-paranormal {
+  position: relative;
+  display: inline-block;
+  font-size: clamp(28px, 5vw, 60px);
+  letter-spacing: 4px;
+}
+
+.glitch-a {
+  position: relative;
+  display: inline-block;
+  font-family: 'Major Mono Display', monospace;
+}
+
+.glitch-a::before {
+  content: '▲';
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  animation: glitchA 3s infinite;
+}
+
+.glitch-a::after {
+  content: '▲';
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  animation: glitchA 3s infinite 0.1s;
+}
+
+@keyframes glitchA {
+  0%, 90%, 100% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  91% {
+    opacity: 1;
+    transform: translate(-2px, -2px);
+  }
+  93% {
+    opacity: 1;
+    transform: translate(2px, 2px);
+  }
+  95% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+}
+
+.glitch-o {
+  position: relative;
+  display: inline-block;
+  font-family: 'Major Mono Display', monospace;
+}
+
+.glitch-o::before {
+  content: '■';
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  animation: glitchO 3s infinite;
+}
+
+.glitch-o::after {
+  content: '■';
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  animation: glitchO 3s infinite 0.15s;
+}
+
+@keyframes glitchO {
+  0%, 90%, 100% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  91% {
+    opacity: 1;
+    transform: translate(-2px, -2px);
+  }
+  93% {
+    opacity: 1;
+    transform: translate(2px, 2px);
+  }
+  95% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+}
+
+/* ========== WRAPPER DEL CARRUSEL ========== */
+.featured-cases-carousel-wrapper {
+  width: 100%;
+  position: relative;
+  padding: 0;
+}
+
+/* ========== GRADIENTES DE FADE EN LOS BORDES ========== */
+.carousel-fade-left,
+.carousel-fade-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 150px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.carousel-fade-left {
+  left: 0;
+  background: linear-gradient(to right, #0f0f11 0%, rgba(15, 15, 17, 0.8) 50%, transparent 100%);
+}
+
+.carousel-fade-right {
+  right: 0;
+  background: linear-gradient(to left, #0f0f11 0%, rgba(15, 15, 17, 0.8) 50%, transparent 100%);
+}
+
+/* ========== EMBLA CAROUSEL ========== */
+.embla {
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+}
+
+.embla__container {
+  display: flex;
+  gap: 48px;
+  padding: 0 100px;
+}
+
+.embla__slide {
+  flex: 0 0 320px;
+  min-width: 0;
+  position: relative;
+}
+
+/* ========== CARD DE CASO ========== */
+.featured-case-card {
+  width: 100%;
+  height: 600px;
+  background: #0f0f11;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.featured-case-card:hover {
+  border-color: rgba(66, 255, 28, 0.3);
+  box-shadow: 0 0 30px rgba(66, 255, 28, 0.1);
+  transform: translateY(-5px);
+}
+
+/* Glow en cards laterales */
+.embla__slide:first-child .featured-case-card {
+  box-shadow: -10px 0 30px rgba(255, 255, 255, 0.08);
+}
+
+.embla__slide:last-child .featured-case-card {
+  box-shadow: 10px 0 30px rgba(255, 255, 255, 0.08);
+}
+
+/* ========== TÍTULO DEL CARD ========== */
+.case-card-title {
+  font-family: 'Major Mono Display', monospace;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+/* ========== CONTENEDOR DE IMAGEN ========== */
+.case-card-image-container {
+  width: 100%;
+  height: 350px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #1a1a1a;
+  position: relative;
+}
+
+.case-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(100%) contrast(1.2);
+  transition: filter 0.3s ease;
+}
+
+.featured-case-card:hover .case-card-image {
+  filter: grayscale(80%) contrast(1.3);
+}
+
+.case-card-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f11 100%);
+}
+
+.placeholder-icon {
+  font-size: 48px;
+  opacity: 0.3;
+}
+
+/* ========== DESCRIPCIÓN ========== */
+.case-card-description {
+  font-family: 'Major Mono Display', monospace;
+  color: #ffffff;
+  font-size: 11px;
+  line-height: 1.6;
+  flex-grow: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.case-card-description div {
+  margin: 0;
+}
+
+/* ========== BOTÓN ========== */
+.case-card-button {
+  width: 100%;
+  background: #42ff1c;
+  color: #0f0f11;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-family: 'Major Mono Display', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  margin-top: auto;
+}
+
+.case-card-button:hover {
+  background: #3dd915;
+  box-shadow: 0 0 20px rgba(66, 255, 28, 0.4);
+  transform: translateY(-2px);
+}
+
+.case-card-button:active {
+  transform: translateY(0);
+}
+
+.button-icon {
+  font-size: 16px;
+  display: inline-block;
+}
+
+.button-text {
+  color: #0f0f11;
+}
+
+/* ========== ESTADO DE CARGA ========== */
+.featured-cases-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 20px;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(66, 255, 28, 0.1);
+  border-top: 4px solid #42ff1c;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.featured-cases-loading p {
+  color: #42ff1c;
+  font-family: 'Major Mono Display', monospace;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+  .featured-cases-title-container {
+    padding: 0 24px;
+    margin-bottom: 60px;
+  }
+
+  .embla__container {
+    padding: 0 60px;
+    gap: 36px;
+  }
+
+  .embla__slide {
+    flex: 0 0 280px;
+  }
+
+  .featured-case-card {
+    height: 550px;
+  }
+
+  .case-card-image-container {
+    height: 320px;
+  }
+}
+
+@media (max-width: 768px) {
+  .featured-cases-section {
+    padding: 40px 0;
+  }
+
+  .featured-cases-title-container {
+    padding: 0 20px;
+    margin-bottom: 40px;
+  }
+
+  .featured-cases-title {
+    font-size: clamp(24px, 8vw, 48px);
+  }
+
+  .carousel-fade-left,
+  .carousel-fade-right {
+    width: 80px;
+  }
+
+  .embla__container {
+    padding: 0 40px;
+    gap: 28px;
+  }
+
+  .embla__slide {
+    flex: 0 0 260px;
+  }
+
+  .featured-case-card {
+    height: 500px;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .case-card-image-container {
+    height: 280px;
+  }
+
+  .case-card-title {
+    font-size: 11px;
+  }
+
+  .case-card-description {
+    font-size: 10px;
+  }
+
+  .case-card-button {
+    padding: 10px 14px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .featured-cases-section {
+    padding: 30px 0;
+  }
+
+  .featured-cases-title-container {
+    padding: 0 16px;
+    margin-bottom: 30px;
+  }
+
+  .title-paranormal {
+    font-size: clamp(22px, 7vw, 32px);
+  }
+
+  .carousel-fade-left,
+  .carousel-fade-right {
+    width: 50px;
+  }
+
+  .embla__container {
+    padding: 0 30px;
+    gap: 24px;
+  }
+
+  .embla__slide {
+    flex: 0 0 240px;
+  }
+
+  .featured-case-card {
+    height: 480px;
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .case-card-image-container {
+    height: 250px;
+  }
+
+  .case-card-title {
+    font-size: 10px;
+  }
+
+  .case-card-description {
+    font-size: 9px;
+  }
+
+  .case-card-button {
+    padding: 8px 12px;
+    font-size: 10px;
+    gap: 6px;
+  }
+
+  .button-icon {
+    font-size: 14px;
+  }
+}
+

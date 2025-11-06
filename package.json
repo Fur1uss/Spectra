@@ -13,6 +13,8 @@
     "@appletosolutions/reactbits": "^1.0.3",
     "@supabase/supabase-js": "^2.76.1",
     "bcryptjs": "^3.0.2",
+    "embla-carousel-autoplay": "^8.6.0",
+    "embla-carousel-react": "^8.6.0",
     "fullpage.js": "^4.0.37",
     "fuse.js": "^7.1.0",
     "gsap": "^3.13.0",
