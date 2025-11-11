@@ -5,7 +5,23 @@ export const casesService = {
   // Obtener todos los casos con paginación
   async getCases(page = 1, limit = 6, filters = {}) {
     try {
-      let query = supabase
+      // 1) Consulta de conteo exacto (más robusta en Supabase con head: true)
+      let countQuery = supabase
+        .from('Case')
+        .select('*', { count: 'exact', head: true });
+
+      if (filters.type) {
+        countQuery = countQuery.eq('caseType', filters.type);
+      }
+      if (filters.search) {
+        countQuery = countQuery.or(`caseName.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+      }
+
+      const { count: totalCount, error: countError } = await countQuery;
+      if (countError) throw countError;
+
+      // 2) Consulta de datos paginados
+      let dataQuery = supabase
         .from('Case')
         .select(`
           *,
@@ -18,28 +34,28 @@ export const casesService = {
 
       // Aplicar filtros
       if (filters.type) {
-        query = query.eq('caseType', filters.type);
+        dataQuery = dataQuery.eq('caseType', filters.type);
       }
-      
+
       if (filters.search) {
-        query = query.or(`caseName.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+        dataQuery = dataQuery.or(`caseName.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
       }
 
       // Paginación
       const from = (page - 1) * limit;
       const to = from + limit - 1;
-      query = query.range(from, to);
+      dataQuery = dataQuery.range(from, to);
 
-      const { data, error, count } = await query;
+      const { data, error } = await dataQuery;
       
       if (error) throw error;
 
       return {
         cases: data || [],
-        totalCount: count || 0,
+        totalCount: totalCount || 0,
         currentPage: page,
-        totalPages: Math.ceil((count || 0) / limit),
-        hasNextPage: (page * limit) < (count || 0),
+        totalPages: Math.max(1, Math.ceil((totalCount || 0) / limit)),
+        hasNextPage: (page * limit) < (totalCount || 0),
         hasPrevPage: page > 1
       };
     } catch (error) {
@@ -98,7 +114,7 @@ export const casesService = {
           Location!inner(id, address, country),
           User!inner(id, username, first_name, last_name),
           Files(id, url, type_multimedia)
-        `)
+        `, { count: 'exact', head: false })
         .or(`caseName.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
         .order('timeHour', { ascending: false })
         .range((page - 1) * limit, page * limit - 1);

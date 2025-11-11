@@ -20,7 +20,8 @@ const Hub = () => {
         searchCases, 
         applyFilters, 
         nextPage, 
-        prevPage 
+        prevPage,
+        goToPage
     } = useCases(1, 6);
 
     const toggleFilters = () => {
@@ -120,8 +121,23 @@ const Hub = () => {
                 </button>
                 
                 {loading ? (
-                    <div className="hub-loading">
-                        <p>Cargando casos...</p>
+                    <div className="hub-grid-container">
+                        {Array.from({ length: 6 }).map((_, index) => (
+                            <div 
+                                key={`skeleton-${index}`} 
+                                className={`hub-box hub-box-${index + 1} hub-box-skeleton`}
+                                aria-hidden="true"
+                            >
+                                <div className="hub-skeleton-shimmer"></div>
+                                <div className="hub-skel-title"></div>
+                                <div className="hub-skel-badges">
+                                    <div className="hub-skel-badge"></div>
+                                    <div className="hub-skel-badge" style={{ width: '110px' }}></div>
+                                    <div className="hub-skel-badge" style={{ width: '90px' }}></div>
+                                </div>
+                                <div className="hub-skel-button"></div>
+                            </div>
+                        ))}
                     </div>
                 ) : error ? (
                     <div className="hub-error">
@@ -199,12 +215,21 @@ const Hub = () => {
             </div>
             <div className="hub-navegator-display">
                 <div className="hub-pagination-dots">
-                    <div className="hub-dot active"></div>
-                    <div className="hub-dot"></div>
-                    <div className="hub-dot"></div>
+                    {Array.from({ length: pagination.totalPages || 1 }).map((_, index) => (
+                        <button
+                            key={`dot-${index}`}
+                            type="button"
+                            className={`hub-dot ${pagination.currentPage === (index + 1) ? 'active' : ''}`}
+                            onClick={() => goToPage(index + 1)}
+                            aria-label={`Ir a la página ${index + 1}`}
+                        />
+                    ))}
                 </div>
                 <div className="hub-pagination-number">
-                    <span>01-23</span>
+                    <span>
+                        {String(pagination.currentPage || 1).padStart(2, '0')}-
+                        {String(pagination.totalPages || 1).padStart(2, '0')}
+                    </span>
                 </div>
             </div>
         </div>
