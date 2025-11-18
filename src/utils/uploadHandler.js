@@ -1,18 +1,83 @@
 import { supabase } from './supabase.js'
 
-// Función para refrescar URLs firmadas
-export const refreshSignedUrl = async (filePath) => {
+/**
+ * Genera una URL firmada fresca desde un path o URL existente
+ * @param {string} filePathOrUrl - Path del archivo o URL firmada existente
+ * @param {number} expiresIn - Tiempo de expiración en segundos (default: 1 hora)
+ * @returns {Promise<string|null>} URL firmada o null si hay error
+ */
+export const getSignedUrl = async (filePathOrUrl, expiresIn = 60 * 60) => {
   try {
+    // Si ya es un path simple (no empieza con http), usarlo directamente
+    if (!filePathOrUrl.startsWith('http://') && !filePathOrUrl.startsWith('https://')) {
+      const { data: signedUrl, error } = await supabase.storage
+        .from('multimedia')
+        .createSignedUrl(filePathOrUrl, expiresIn)
+      
+      if (error) {
+        console.error('Error creating signed URL from path:', error)
+        return null
+      }
+      
+      return signedUrl.signedUrl
+    }
+    
+    // Si es una URL, extraer el path
+    let filePath = null
+    
+    try {
+      const urlObj = new URL(filePathOrUrl)
+      
+      // Extraer path de URL firmada: /storage/v1/object/sign/multimedia/{path}?token=...
+      const signedMatch = urlObj.pathname.match(/\/storage\/v1\/object\/sign\/multimedia\/(.+)/)
+      if (signedMatch) {
+        filePath = decodeURIComponent(signedMatch[1].split('?')[0])
+      }
+      
+      // Extraer path de URL pública: /storage/v1/object/public/multimedia/{path}
+      if (!filePath) {
+        const publicMatch = urlObj.pathname.match(/\/storage\/v1\/object\/public\/multimedia\/(.+)/)
+        if (publicMatch) {
+          filePath = decodeURIComponent(publicMatch[1])
+        }
+      }
+    } catch (e) {
+      console.warn('No se pudo parsear la URL:', filePathOrUrl, e)
+      // Si no se puede extraer el path, devolver la URL original
+      return filePathOrUrl
+    }
+    
+    // Si no se pudo extraer el path, devolver la URL original
+    if (!filePath) {
+      console.warn('No se pudo extraer el path de la URL:', filePathOrUrl)
+      return filePathOrUrl
+    }
+    
+    // Generar nueva URL firmada con el path extraído
     const { data: signedUrl, error } = await supabase.storage
       .from('multimedia')
-      .createSignedUrl(filePath, 60 * 60 * 24 * 7) // 7 días de validez
+      .createSignedUrl(filePath, expiresIn)
     
-    if (error) throw error
+    if (error) {
+      console.error('Error creating signed URL:', error)
+      // Fallback: intentar URL pública si el bucket es público
+      const { data: publicUrl } = supabase.storage
+        .from('multimedia')
+        .getPublicUrl(filePath)
+      return publicUrl.publicUrl
+    }
+    
     return signedUrl.signedUrl
   } catch (error) {
-    console.error('Error refreshing signed URL:', error)
-    return null
+    console.error('Error getting signed URL:', error)
+    // Si todo falla, devolver la URL original
+    return filePathOrUrl
   }
+}
+
+// Función para refrescar URLs firmadas (mantener compatibilidad)
+export const refreshSignedUrl = async (filePath) => {
+  return getSignedUrl(filePath, 60 * 60 * 24 * 7) // 7 días de validez
 }
 
 /**
@@ -116,25 +181,10 @@ export const uploadFilesToSupabase = async (files, caseId) => {
         throw new Error(`Error al subir ${file.name}: ${error.message}`)
       }
 
-      // Obtener URL firmada del archivo (no requiere CORS)
-      const { data: signedUrl, error: signedError } = await supabase.storage
-        .from('multimedia')
-        .createSignedUrl(filePath, 60 * 60 * 24 * 7) // 7 días de validez
-
-      if (signedError) {
-        console.warn('Error creating signed URL, using public URL:', signedError)
-        // Fallback a URL pública
-        const { data: urlData } = supabase.storage
-          .from('multimedia')
-          .getPublicUrl(filePath)
-        return {
-          url: urlData.publicUrl,
-          type: fileType
-        }
-      }
-
+      // Guardar el path del archivo en lugar de la URL firmada
+      // Las URLs firmadas se generarán dinámicamente cuando se necesiten
       return {
-        url: signedUrl.signedUrl,
+        path: filePath,
         type: fileType
       }
     })
@@ -195,14 +245,15 @@ export const createCase = async (caseData) => {
 /**
  * Guarda archivos en la tabla Files vinculados al caso
  * @param {number} caseId - ID del caso
- * @param {Array} uploadedUrls - Array de URLs de archivos subidos
+ * @param {Array} uploadedFiles - Array de archivos subidos (con path o url)
  * @returns {Promise<{success: boolean, error?: string}>}
  */
-export const saveFilesToDatabase = async (caseId, uploadedUrls) => {
+export const saveFilesToDatabase = async (caseId, uploadedFiles) => {
   try {
-    const fileRecords = uploadedUrls.map(item => ({
+    const fileRecords = uploadedFiles.map(item => ({
       Case: caseId,
-      url: item.url,
+      // Guardar path si existe, sino usar url (para compatibilidad con datos antiguos)
+      url: item.path || item.url,
       type_multimedia: item.type
     }))
 

@@ -156,11 +156,18 @@ const Hub = () => {
                                 onClick={() => handleCaseClick(caseItem.id)}
                             >
                                 {hasCover && (
-                                    <div 
-                                        className="hub-box-bg"
-                                        style={{ backgroundImage: `url(${coverUrl})` }}
-                                        aria-hidden="true"
-                                    />
+                                    <div className="hub-box-bg">
+                                        <img
+                                            src={coverUrl}
+                                            alt=""
+                                            className="hub-box-bg-img"
+                                            aria-hidden="true"
+                                            onError={(e) => {
+                                                // Si la imagen falla al cargar, ocultarla
+                                                e.target.style.display = 'none';
+                                            }}
+                                        />
+                                    </div>
                                 )}
                                 <div className="hub-box-title">{caseItem.caseName || 'Sin nombre'}</div>
                                 <div className="hub-box-badges">

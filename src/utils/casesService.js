@@ -1,4 +1,34 @@
 import { supabase } from './supabase.js';
+import { getSignedUrl } from './uploadHandler.js';
+
+/**
+ * Procesa los archivos de un caso para generar URLs firmadas frescas
+ * @param {Array} files - Array de archivos con url/path
+ * @returns {Promise<Array>} Array de archivos con URLs actualizadas
+ */
+const processFilesWithFreshUrls = async (files) => {
+  if (!files || files.length === 0) return files;
+  
+  const processedFiles = await Promise.all(
+    files.map(async (file) => {
+      if (!file.url) return file;
+      
+      try {
+        // Generar URL firmada fresca (1 hora de validez)
+        const freshUrl = await getSignedUrl(file.url, 60 * 60);
+        return {
+          ...file,
+          url: freshUrl || file.url // Usar URL fresca o mantener la original si falla
+        };
+      } catch (error) {
+        console.warn('Error generando URL fresca para archivo:', file.id, error);
+        return file; // Devolver archivo original si hay error
+      }
+    })
+  );
+  
+  return processedFiles;
+};
 
 // Servicio para manejar los casos
 export const casesService = {
@@ -50,8 +80,22 @@ export const casesService = {
       
       if (error) throw error;
 
+      // Procesar casos para generar URLs frescas para los archivos
+      const processedCases = await Promise.all(
+        (data || []).map(async (caseItem) => {
+          if (caseItem.Files && caseItem.Files.length > 0) {
+            const processedFiles = await processFilesWithFreshUrls(caseItem.Files);
+            return {
+              ...caseItem,
+              Files: processedFiles
+            };
+          }
+          return caseItem;
+        })
+      );
+
       return {
-        cases: data || [],
+        cases: processedCases,
         totalCount: totalCount || 0,
         currentPage: page,
         totalPages: Math.max(1, Math.ceil((totalCount || 0) / limit)),
@@ -80,6 +124,12 @@ export const casesService = {
         .single();
 
       if (error) throw error;
+      
+      // Procesar archivos para generar URLs frescas
+      if (data.Files && data.Files.length > 0) {
+        data.Files = await processFilesWithFreshUrls(data.Files);
+      }
+      
       return data;
     } catch (error) {
       console.error('Error fetching case:', error);
@@ -121,8 +171,22 @@ export const casesService = {
 
       if (error) throw error;
 
+      // Procesar casos para generar URLs frescas para los archivos
+      const processedCases = await Promise.all(
+        (data || []).map(async (caseItem) => {
+          if (caseItem.Files && caseItem.Files.length > 0) {
+            const processedFiles = await processFilesWithFreshUrls(caseItem.Files);
+            return {
+              ...caseItem,
+              Files: processedFiles
+            };
+          }
+          return caseItem;
+        })
+      );
+
       return {
-        cases: data || [],
+        cases: processedCases,
         totalCount: count || 0,
         currentPage: page,
         totalPages: Math.ceil((count || 0) / limit),
@@ -144,7 +208,10 @@ export const casesService = {
         .order('id');
 
       if (error) throw error;
-      return data || [];
+      
+      // Procesar archivos para generar URLs frescas
+      const processedFiles = await processFilesWithFreshUrls(data || []);
+      return processedFiles;
     } catch (error) {
       console.error('Error fetching case files:', error);
       throw error;
@@ -163,7 +230,10 @@ export const casesService = {
         .eq('type_multimedia', type);
 
       if (error) throw error;
-      return data || [];
+      
+      // Procesar archivos para generar URLs frescas
+      const processedFiles = await processFilesWithFreshUrls(data || []);
+      return processedFiles;
     } catch (error) {
       console.error('Error fetching files by type:', error);
       throw error;

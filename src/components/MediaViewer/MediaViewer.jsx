@@ -1,19 +1,31 @@
 import React, { useState, useRef } from 'react'
+import { getSignedUrl } from '../../utils/uploadHandler.js'
 import './MediaViewer.css'
 
 const MediaViewer = ({ file, type, index, onImageClick }) => {
   const [hasError, setHasError] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [imageUrl, setImageUrl] = useState(file.url)
+  const [retryCount, setRetryCount] = useState(0)
   const mediaRef = useRef(null)
 
   const handleError = async () => {
-    console.log(`Error cargando ${type}:`, file.url)
+    console.log(`Error cargando ${type}:`, imageUrl)
     
-    // Si es una URL firmada que expiró, intentar refrescar
-    if (file.url.includes('supabase.co') && file.url.includes('token=')) {
+    // Intentar refrescar la URL si es de Supabase (máximo 1 intento)
+    if (retryCount === 0 && (imageUrl.includes('supabase.co') || imageUrl.includes('/storage/'))) {
       console.log('Intentando refrescar URL firmada...')
-      // Aquí podrías implementar lógica para refrescar la URL
-      // Por ahora, solo mostrar error
+      try {
+        const freshUrl = await getSignedUrl(imageUrl, 60 * 60)
+        if (freshUrl && freshUrl !== imageUrl) {
+          setImageUrl(freshUrl)
+          setRetryCount(1)
+          setIsLoading(true)
+          return // No marcar como error todavía, intentar con la nueva URL
+        }
+      } catch (error) {
+        console.error('Error al refrescar URL:', error)
+      }
     }
     
     setHasError(true)
@@ -67,7 +79,7 @@ const MediaViewer = ({ file, type, index, onImageClick }) => {
           onLoadStart={handleLoadStart}
           onCanPlay={handleLoad}
         >
-          <source src={file.url} type="video/mp4" />
+          <source src={imageUrl} type="video/mp4" />
           Tu navegador no soporta el elemento video.
         </video>
         <p className="video-description">Video {index + 1}</p>
@@ -88,7 +100,7 @@ const MediaViewer = ({ file, type, index, onImageClick }) => {
         <audio
           ref={mediaRef}
           controls
-          src={file.url}
+          src={imageUrl}
           className={`audio-player ${isLoading ? 'loading' : ''}`}
           crossOrigin="anonymous"
           onError={handleError}
@@ -113,7 +125,7 @@ const MediaViewer = ({ file, type, index, onImageClick }) => {
           )}
           <img
             ref={mediaRef}
-            src={file.url}
+            src={imageUrl}
             alt={`Imagen ${index + 1}`}
             crossOrigin="anonymous"
             onError={handleError}
