@@ -14,8 +14,9 @@ const processFilesWithFreshUrls = async (files) => {
       if (!file.url) return file;
       
       try {
-        // Generar URL firmada fresca (1 hora de validez)
-        const freshUrl = await getSignedUrl(file.url, 60 * 60);
+        // Solo regenerar URL si está expirada o es un path (7 días de validez)
+        // Si la URL actual es válida, no hacer petición a Supabase
+        const freshUrl = await getSignedUrl(file.url, 60 * 60 * 24 * 7, false);
         return {
           ...file,
           url: freshUrl || file.url // Usar URL fresca o mantener la original si falla

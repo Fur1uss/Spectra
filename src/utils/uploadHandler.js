@@ -1,12 +1,61 @@
 import { supabase } from './supabase.js'
 
 /**
+ * Verifica si una URL firmada aún es válida
+ * @param {string} signedUrl - URL firmada a verificar
+ * @returns {boolean} true si la URL es válida, false si está expirada
+ */
+const isSignedUrlValid = (signedUrl) => {
+  try {
+    if (!signedUrl || !signedUrl.includes('token=')) {
+      return false;
+    }
+    
+    const urlObj = new URL(signedUrl);
+    const tokenParam = urlObj.searchParams.get('token');
+    
+    if (!tokenParam) {
+      return false;
+    }
+    
+    // Decodificar el JWT (solo la parte del payload)
+    try {
+      // El token puede tener formato JWT estándar o formato de Supabase
+      const parts = tokenParam.split('.');
+      if (parts.length < 2) {
+        return false;
+      }
+      
+      // Decodificar el payload (segunda parte del JWT)
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      const exp = payload.exp;
+      
+      if (!exp) {
+        return false;
+      }
+      
+      const now = Math.floor(Date.now() / 1000);
+      
+      // Considerar válida si expira en más de 1 hora (3600 segundos)
+      // Esto evita regenerar URLs que aún son válidas
+      return (exp - now) > 3600;
+    } catch (e) {
+      // Si no se puede decodificar, asumir que no es válida
+      return false;
+    }
+  } catch (e) {
+    return false;
+  }
+};
+
+/**
  * Genera una URL firmada fresca desde un path o URL existente
  * @param {string} filePathOrUrl - Path del archivo o URL firmada existente
- * @param {number} expiresIn - Tiempo de expiración en segundos (default: 1 hora)
+ * @param {number} expiresIn - Tiempo de expiración en segundos (default: 7 días)
+ * @param {boolean} forceRefresh - Forzar regeneración incluso si la URL es válida
  * @returns {Promise<string|null>} URL firmada o null si hay error
  */
-export const getSignedUrl = async (filePathOrUrl, expiresIn = 60 * 60) => {
+export const getSignedUrl = async (filePathOrUrl, expiresIn = 60 * 60 * 24 * 7, forceRefresh = false) => {
   try {
     // Si ya es un path simple (no empieza con http), usarlo directamente
     if (!filePathOrUrl.startsWith('http://') && !filePathOrUrl.startsWith('https://')) {
@@ -20,6 +69,11 @@ export const getSignedUrl = async (filePathOrUrl, expiresIn = 60 * 60) => {
       }
       
       return signedUrl.signedUrl
+    }
+    
+    // Si es una URL firmada y aún es válida, no regenerar
+    if (!forceRefresh && isSignedUrlValid(filePathOrUrl)) {
+      return filePathOrUrl
     }
     
     // Si es una URL, extraer el path
