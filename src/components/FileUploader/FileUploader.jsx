@@ -1,9 +1,16 @@
 import React, { useState, useCallback } from 'react';
 import { FaPlus, FaTrash, FaVideo, FaImage, FaMusic } from 'react-icons/fa';
+import NSFWAnalysisModal from '../NSFWAnalysisModal/NSFWAnalysisModal';
+import { analyzeImage, isImageFile } from '../../utils/nsfwDetector';
 import './FileUploader.css';
 
 const FileUploader = ({ onFilesChange, initialFiles = [], errors = {} }) => {
   const [files, setFiles] = useState(initialFiles);
+  const [analysisModal, setAnalysisModal] = useState({
+    isOpen: false,
+    status: 'analyzing', // 'analyzing' | 'safe' | 'nsfw' | 'error'
+    fileName: ''
+  });
 
   // Obtener tipo de archivo por extensión
   const getFileTypeFromExtension = (fileName) => {
@@ -18,27 +25,149 @@ const FileUploader = ({ onFilesChange, initialFiles = [], errors = {} }) => {
     return 'unknown';
   };
 
+  // Analizar imagen con NSFW.js
+  const analyzeFileForNSFW = useCallback(async (file) => {
+    // Solo analizar imágenes
+    if (!isImageFile(file)) {
+      return { isNSFW: false, skip: true };
+    }
+
+    try {
+      const result = await analyzeImage(file);
+      return result;
+    } catch (error) {
+      console.error('Error en análisis NSFW:', error);
+      return { isNSFW: true, error: error.message };
+    }
+  }, []);
+
+  // Procesar un archivo individual
+  const processFile = useCallback(async (file) => {
+    const fileType = getFileTypeFromExtension(file.name);
+    
+    // Si es imagen, analizar con NSFW.js
+    if (fileType === 'image') {
+      // Mostrar modal de análisis
+      setAnalysisModal({
+        isOpen: true,
+        status: 'analyzing',
+        fileName: file.name
+      });
+
+      // Analizar imagen
+      const analysisResult = await analyzeFileForNSFW(file);
+
+      if (analysisResult.skip) {
+        // No es imagen o no se puede analizar, agregar directamente
+        const newFile = {
+          id: Date.now() + Math.random(),
+          file,
+          type: fileType,
+          preview: URL.createObjectURL(file),
+          name: file.name,
+          size: file.size
+        };
+        setFiles(prev => [...prev, newFile]);
+        setAnalysisModal({ isOpen: false, status: 'analyzing', fileName: '' });
+      } else {
+        // Mostrar resultados en consola
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log(`📸 ANÁLISIS NSFW: ${file.name}`);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        
+        // Mostrar porcentajes de cada categoría
+        if (analysisResult.predictions && analysisResult.predictions.length > 0) {
+          console.log('\n📊 Porcentajes por categoría:');
+          analysisResult.predictions.forEach(pred => {
+            const percentage = (pred.probability * 100).toFixed(2);
+            const bar = '█'.repeat(Math.floor(pred.probability * 20));
+            const category = pred.className.padEnd(10);
+            console.log(`  ${category}: ${percentage.padStart(6)}% ${bar}`);
+          });
+        }
+        
+        // Calcular porcentaje de aceptación (100% - NSFW%)
+        const nsfwPercentage = (analysisResult.nsfwProbability * 100).toFixed(2);
+        const acceptancePercentage = ((1 - analysisResult.nsfwProbability) * 100).toFixed(2);
+        
+        console.log('\n📈 Resumen:');
+        console.log(`  NSFW Total:     ${nsfwPercentage}%`);
+        console.log(`  Aceptación:     ${acceptancePercentage}%`);
+        console.log(`  Categoría Top:  ${analysisResult.category} (${(analysisResult.confidence * 100).toFixed(2)}%)`);
+        
+        if (analysisResult.isNSFW) {
+          // Contenido NSFW detectado
+          console.log('\n❌ RESULTADO: RECHAZADO (Contenido NSFW detectado)');
+          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+          
+          setAnalysisModal({
+            isOpen: true,
+            status: 'nsfw',
+            fileName: file.name
+          });
+          
+          // Esperar 3 segundos antes de cerrar y procesar siguiente
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          setAnalysisModal({ isOpen: false, status: 'analyzing', fileName: '' });
+          
+          // NO agregar el archivo
+        } else {
+          // Imagen segura
+          console.log('\n✅ RESULTADO: APROBADO (Contenido seguro)');
+          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+          
+          setAnalysisModal({
+            isOpen: true,
+            status: 'safe',
+            fileName: file.name
+          });
+
+          // Esperar 2 segundos para mostrar mensaje de éxito
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Agregar archivo
+          const newFile = {
+            id: Date.now() + Math.random(),
+            file,
+            type: fileType,
+            preview: URL.createObjectURL(file),
+            name: file.name,
+            size: file.size
+          };
+          setFiles(prev => [...prev, newFile]);
+          setAnalysisModal({ isOpen: false, status: 'analyzing', fileName: '' });
+        }
+      }
+    } else {
+      // No es imagen, agregar directamente (videos, audios)
+      const newFile = {
+        id: Date.now() + Math.random(),
+        file,
+        type: fileType,
+        preview: fileType === 'video' || fileType === 'audio' 
+          ? URL.createObjectURL(file) 
+          : null,
+        name: file.name,
+        size: file.size
+      };
+      setFiles(prev => [...prev, newFile]);
+    }
+  }, [analyzeFileForNSFW]);
+
   // Manejar selección de archivos
-  const handleFileSelect = useCallback((event) => {
+  const handleFileSelect = useCallback(async (event) => {
     const selectedFiles = Array.from(event.target.files);
     
     if (selectedFiles.length === 0) return;
 
-    // Crear objetos de archivo con preview y tipo automático
-    const newFiles = selectedFiles.map(file => ({
-      id: Date.now() + Math.random(),
-      file,
-      type: getFileTypeFromExtension(file.name),
-      preview: URL.createObjectURL(file),
-      name: file.name,
-      size: file.size
-    }));
-
-    setFiles(prev => [...prev, ...newFiles]);
+    // Procesar archivos secuencialmente
+    for (const file of selectedFiles) {
+      await processFile(file);
+    }
 
     // Limpiar input
     event.target.value = '';
-  }, []);
+  }, [processFile]);
 
   // Eliminar archivo
   const handleRemoveFile = useCallback((fileId) => {
@@ -154,6 +283,13 @@ const FileUploader = ({ onFilesChange, initialFiles = [], errors = {} }) => {
       {errors.files && (
         <div className="error-message">{errors.files}</div>
       )}
+
+      {/* Modal de análisis NSFW */}
+      <NSFWAnalysisModal
+        isOpen={analysisModal.isOpen}
+        status={analysisModal.status}
+        fileName={analysisModal.fileName}
+      />
     </div>
   );
 };

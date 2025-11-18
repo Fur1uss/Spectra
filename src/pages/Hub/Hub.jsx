@@ -162,6 +162,8 @@ const Hub = () => {
                                             alt=""
                                             className="hub-box-bg-img"
                                             aria-hidden="true"
+                                            crossOrigin="anonymous"
+                                            referrerPolicy="no-referrer"
                                             onError={(e) => {
                                                 // Si la imagen falla al cargar, ocultarla
                                                 e.target.style.display = 'none';

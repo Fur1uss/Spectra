@@ -183,6 +183,8 @@ const FeaturedCasesCarousel = () => {
                             alt={caseData.caseName || caseData.description?.substring(0, 50) || 'Caso paranormal'}
                             className="case-card-image"
                             loading="lazy"
+                            crossOrigin="anonymous"
+                            referrerPolicy="no-referrer"
                             onError={(e) => {
                               e.target.style.display = 'none';
                               const placeholder = e.target.parentElement.querySelector('.case-card-image-placeholder');
