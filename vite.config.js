@@ -16,7 +16,6 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'supabase-vendor': ['@supabase/supabase-js'],
           'animation-vendor': ['gsap'],
-          'map-vendor': ['leaflet', 'leaflet-react'],
           'fullpage-vendor': ['fullpage.js'],
           'icons-vendor': ['react-icons']
         }

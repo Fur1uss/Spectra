@@ -19,8 +19,6 @@
     "fullpage.js": "^4.0.37",
     "fuse.js": "^7.1.0",
     "gsap": "^3.13.0",
-    "leaflet": "^1.9.4",
-    "leaflet-react": "^3.0.5",
     "nsfwjs": "^4.2.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
