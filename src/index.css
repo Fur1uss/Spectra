@@ -6,6 +6,22 @@
     --font-family: 'Major Mono Display', monospace, sans-serif;
 }
 
+/* Optimización de fuentes con font-display: swap */
+@font-face {
+    font-family: 'Major Mono Display';
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Figtree';
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Bayon';
+    font-display: swap;
+}
+
 html {
     height: 100%;
     overflow-x: hidden;
