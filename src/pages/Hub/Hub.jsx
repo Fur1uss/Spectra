@@ -149,6 +149,8 @@ const Hub = () => {
                             const coverImage = (caseItem?.Files || []).find(f => f.type_multimedia === 'image')
                             const coverUrl = coverImage?.url || ''
                             const hasCover = Boolean(coverUrl)
+                            // Primera imagen visible tiene prioridad alta, resto lazy loading
+                            const isFirstVisible = index < 3
                             return (
                             <div 
                                 key={caseItem.id} 
@@ -164,6 +166,11 @@ const Hub = () => {
                                             aria-hidden="true"
                                             crossOrigin="anonymous"
                                             referrerPolicy="no-referrer"
+                                            loading={isFirstVisible ? "eager" : "lazy"}
+                                            fetchPriority={isFirstVisible ? "high" : "auto"}
+                                            width="800"
+                                            height="450"
+                                            decoding="async"
                                             onError={(e) => {
                                                 // Si la imagen falla al cargar, ocultarla
                                                 e.target.style.display = 'none';

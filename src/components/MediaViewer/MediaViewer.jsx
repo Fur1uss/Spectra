@@ -129,6 +129,8 @@ const MediaViewer = ({ file, type, index, onImageClick }) => {
             alt={`Imagen ${index + 1}`}
             crossOrigin="anonymous"
             referrerPolicy="no-referrer"
+            loading="lazy"
+            decoding="async"
             onError={handleError}
             onLoad={handleLoad}
             onLoadStart={handleLoadStart}
